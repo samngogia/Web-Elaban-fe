@@ -1,12 +1,8 @@
 //copy từ SachProps sang
-
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Carousel } from "react-responsive-carousel";
 import ReviewModel from "../../../models/ReviewModel";
 import { getAllReviewsByProductId, getLatestReviewByProductId } from "../../../api/ReviewAPI";
-import { defaultModifiers } from "@popperjs/core/lib/popper-lite";
-import { Star, StarFill } from "react-bootstrap-icons";
+
 import renderRating from "../../utils/StarRating";
 
 interface ProductReview {

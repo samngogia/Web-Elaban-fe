@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Search, Person } from "react-bootstrap-icons";
+import { Search, Person, Cart } from "react-bootstrap-icons";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+
 
 interface NavbarProps {
     searchKeyword: string;
@@ -164,7 +165,7 @@ function Navbar({ searchKeyword, setSearchKeyword }: NavbarProps) {
                             <a className="nav-link active" aria-current="page" href="#">Tin tức</a>
                         </li>
                         <li className="nav-item">
-                            <a className="nav-link active" aria-current="page" href="#">Liên hệ</a>
+                            <Link className="nav-link" to="/contact">Liên hệ</Link>
                         </li>
                     </ul>
                 </div>
@@ -178,9 +179,14 @@ function Navbar({ searchKeyword, setSearchKeyword }: NavbarProps) {
                 </form>
                 <ul className="navbar-nav">
                     <li className="nav-item">
-                        <a className="nav-link" href="#">
-                            <i className="fas fa-shopping-cart"></i>
-                        </a>
+                        {/* Bỏ thẻ <a> cũ ở đây */}
+                        <Link
+                            className="nav-link text-white"
+                            to="/cart"
+                            aria-current="page"
+                        >
+                            <i className="fas fa-shopping-cart fa-lg"></i>
+                        </Link>
                     </li>
                 </ul>
                 <ul className="navbar-nav">

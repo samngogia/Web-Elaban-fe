@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import ProductModel from "../../models/ProductModel";
 import ImageModel from "../../models/ImageModel";
 import { getProductById } from "../../api/ProductApi";
@@ -8,11 +8,15 @@ import renderRating from "../utils/StarRating";
 import FormatNumber from "../utils/FormatNumber";
 import ProductReview from "./components/ProductReview";
 import ProductImage from "./components/ProductImage";
+import { jwtDecode } from "jwt-decode";
+import { addToCart } from "../../api/CartAPI";
 
 
 
 const ProductDetail: React.FC = () => {
 
+
+    const navigate = useNavigate();
     //lay ma product tu URL
     const { productId } = useParams();
 
@@ -36,7 +40,7 @@ const ProductDetail: React.FC = () => {
     const [quantity, setQuantity] = useState(1);
 
 
-    const increaseQuantity  = () => {
+    const increaseQuantity = () => {
         const availableQuantity = (product && product.quantity ? product?.quantity : 0);
         if (quantity < availableQuantity) {
             setQuantity(quantity + 1);
@@ -59,13 +63,55 @@ const ProductDetail: React.FC = () => {
         // stockQuanity : soluongTonkho
 
     }
+
+
+
+
     const handleMuaNgay = () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("Vui lòng đăng nhập!");
+            return;
+        }
 
-    }
-    const handleThemVaoGioHang = () => {
+        const tempCartItems = [{
+            id: 0,
+            quantity: quantity,
+            product: product
+        }];
+
+        navigate("/checkout", { state: { cartItems: tempCartItems } });
+    };
 
 
-    }
+
+
+    // xử lý nút thêm giỏ hàng
+    const handleThemVaoGioHang = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("Vui lòng đăng nhập!");
+            return;
+        }
+
+        const decoded: any = jwtDecode(token);
+        console.log("Decoded token:", decoded); // xem token có gì
+
+        const userId = decoded.userId;
+        console.log("UserId:", userId);
+
+        if (!userId) {
+            alert("Không lấy được thông tin người dùng!");
+            return;
+        }
+
+        try {
+            await addToCart(Number(userId), productIdNumber, quantity);
+            alert("Đã thêm vào giỏ hàng!");
+        } catch (err: any) {
+            alert(err.message);
+        }
+    };
 
     useEffect(() => {
         //Gọi API để lấy thông tin sách theo mã sách
@@ -108,7 +154,7 @@ const ProductDetail: React.FC = () => {
     }
 
     return (
-      
+
         <div className="container mt-4">
             <div className="row">
                 <div className="col-lg-10 mx-auto">
@@ -119,8 +165,6 @@ const ProductDetail: React.FC = () => {
                             <div className="col-md-4 text-center">
                                 <ProductImage productId={productIdNumber} />
                             </div>
-
-                            {/* THÔNG TIN */}
                             <div className="col-md-5">
                                 <h2 className="fw-bold">{product.name}</h2>
 
@@ -131,13 +175,35 @@ const ProductDetail: React.FC = () => {
                                 <h4 className="text-danger fw-bold">
                                     {FormatNumber(product.sellingPrice)}đ
                                 </h4>
-
-                                <hr />
-
-                                <div
-                                    className="mo-ta-ngan text-muted"
-                                    dangerouslySetInnerHTML={{ __html: product. description + '' }}
-                                />
+                                {/* Thông tin chi tiết */}
+                                <table className="table table-borderless table-sm">
+                                    <tbody>
+                                        {product.brand && (
+                                            <tr>
+                                                <td className="text-muted" style={{ width: '45%' }}>Thương hiệu</td>
+                                                <td>{product.brand}</td>
+                                            </tr>
+                                        )}
+                                        {product.material && (
+                                            <tr>
+                                                <td className="text-muted">Chất liệu</td>
+                                                <td>{product.material}</td>
+                                            </tr>
+                                        )}
+                                        {product.dimensions && (
+                                            <tr>
+                                                <td className="text-muted">Kích thước</td>
+                                                <td>{product.dimensions}</td>
+                                            </tr>
+                                        )}
+                                        {product.quantity && (
+                                            <tr>
+                                                <td className="text-muted">Còn lại</td>
+                                                <td>{product.quantity} sản phẩm</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
                             </div>
 
                             {/* MUA HÀNG */}
@@ -187,6 +253,27 @@ const ProductDetail: React.FC = () => {
                         </div>
 
                     </div>
+
+
+                    {/* Đường kẻ ngăn cách trên */}
+                    <hr />
+
+                    {/* Phần hiển thị nội dung HTML từ Database */}
+                    {product && product.description ? (
+                        <div
+                            className="product-description-wrapper text-muted mb-3"
+                            style={{ lineHeight: '1.6', fontSize: '15px' }} // Thêm một chút style cho dễ đọc
+                            dangerouslySetInnerHTML={{ __html: product.description }}
+                        />
+                    ) : (
+                        <div className="text-muted mb-3 italic">
+                            <p>Đang cập nhật nội dung mô tả sản phẩm...</p>
+                        </div>
+                    )}
+
+                    {/* Đường kẻ ngăn cách dưới */}
+                    <hr />
+
 
                     {/* ĐÁNH GIÁ */}
                     <div className="card shadow mt-4 p-3">

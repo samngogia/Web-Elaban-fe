@@ -12,6 +12,10 @@ import Login from './layout/user/Login';
 import ActivateAccount from './layout/user/ActivateAccount';
 import ProductForm_Admin from './layout/admin/ProductForm';
 import Introduce from './layout/product/components/Introduce';
+import CartPage from './layout/cart/CartPage';
+import CheckoutPage from './layout/cart/CheckoutPage';
+import OrderSuccessPage from './layout/cart/OrderSuccessPage';
+import ContactPage from './layout/about/ContactPage';
 
 function App() {
   //Nó dùng để lưu và cập nhật từ khóa tìm kiếm mà người dùng nhập vào
@@ -30,13 +34,18 @@ function App() {
           <Route path='/category/:categoryId' element={<HomePage searchKeyword={searchKeyword} />} />
           <Route path='/about' element={<About />} />
           <Route path='/product/:productId' element={<ProductDetail />} />
-           {/* chi tiết sản phẩm */}
+          {/* chi tiết sản phẩm */}
           <Route path='/register' element={<Register />} />
           <Route path='/activate/:email/:activationCode' element={<ActivateAccount />} />
           <Route path='/login' element={<Login />} />
           <Route path='/test' element={<Test />} />
           <Route path='/admin/add-product' element={<ProductForm_Admin />} />
-          <Route path='/introduce' element={<Introduce/>}/>
+          <Route path='/introduce' element={<Introduce />} />
+          <Route path="/cart" element={<CartPage />} />
+
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-success" element={<OrderSuccessPage />} />
+          <Route path='/contact' element={<ContactPage />} />
         </Routes>
         <Footer />
 

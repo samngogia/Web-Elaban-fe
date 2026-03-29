@@ -47,7 +47,7 @@ function Register() {
         // Check all conditions
         if (isUsernameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid) {
             const base64Avatar = avatar ? await getBase64(avatar) : null;
-            
+
             try {
                 const url = `http://localhost:8089/account/register`;
 
@@ -57,15 +57,15 @@ function Register() {
                         'Content-type': 'application/json',
                     },
                     body: JSON.stringify({
-                        tenDangNhap: username,
+                        username: username,
+                        password: password,
+                        firstName: firstName,
+                        lastName: lastName,
                         email: email,
-                        matKhau: password,
-                        hoDem: firstName,
-                        ten: lastName,
-                        gioiTinh: gender,
-                        soDienThoai: phoneNumber,
-                        daKichHoat: false,
-                        maKichHoat: "",
+                        gender: gender,
+                        phoneNumber: phoneNumber,
+                        isEnabled: false,
+                        activationCode: "",
                         avatar: base64Avatar
                     })
                 });
@@ -83,7 +83,7 @@ function Register() {
 
     // Check Username Exists
     const checkUsernameExists = async (username: string) => {
-        const url = `http://localhost:8089/users/search/existsByName?Name=${username}`;
+        const url = `http://localhost:8089/users/search/existsByUsername?username=${username}`;
         try {
             const response = await fetch(url);
             const data = await response.text();

@@ -10,13 +10,13 @@ export async function getReviewsFromPath(path: string): Promise<ReviewModel[]> {
 
     try {
         const response = await my_request(fullUrl);
-        const responseData = response?._embedded?.suDanhGias ?? [];
+        const responseData = response?._embedded?.reviews ?? [];
 
         return responseData.map((item: any) => ({
             reviewId: item.reviewId,
             rating: item.rating,
             content: item.content,
-            createdDate:item.createdDate
+            createdDate: item.createdDate
         } as ReviewModel));
     } catch (err: any) {
         console.error('Lỗi khi lấy Đánh Giá từ', fullUrl, err);
@@ -26,12 +26,12 @@ export async function getReviewsFromPath(path: string): Promise<ReviewModel[]> {
 
 // Lấy toàn bộ ảnh của một quyển sách (relative path để proxy hoạt động)
 export async function getAllReviewsByProductId(productId: number): Promise<ReviewModel[]> {
-    const path = `/products/${productId}/review-list`;
+    const path = `http://localhost:8089/reviews/search/findByProduct_Id?productId=${productId}`;
     return getReviewsFromPath(path);
 }
 
 // Lấy 1 ảnh đầu tiên của một quyển sách lay1DanhGiaCuaMotQuyenSachTheoMa
 export async function getLatestReviewByProductId(productId: number): Promise<ReviewModel[]> {
-    const path = `/products/${productId}/review-list?sort=reviewId,desc&page=0&size=1`;
+    const path = `http://localhost:8089/reviews/search/findByProduct_Id?productId=${productId}&sort=reviewId,desc&page=0&size=5`;
     return getReviewsFromPath(path);
 }
