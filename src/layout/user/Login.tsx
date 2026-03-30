@@ -1,10 +1,18 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
     const [username, setUsername] = useState(``);
     const [password, setPassword] = useState(``);
     const [error, setError] = useState(``);
 
+
+
+    const navigate = useNavigate();
+
+
+
+    
     // Handle login logic
     const handleLogin = () => {
         const loginRequest = {
@@ -19,44 +27,44 @@ const Login = () => {
             },
             body: JSON.stringify(loginRequest)
         })
-        .then((response) => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('Login failed!');
-            }
-        })
-        .then((data) => {
-            // Handle successful login
-            const { jwt } = data;
-            if (jwt) {
-                // Save token to localStorage
-                localStorage.setItem('token', jwt);
-                setError('Login successful!');
-                
-                // Redirect after 1 second
-                setTimeout(() => {
-                    window.location.href = "/";
-                }, 1000);
-            }
-        })
-        .catch((error) => {
-            // Handle login error
-            console.error('Login error: ', error);
-            setError('Login failed. Please check your username and password.');
-        });
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Login failed!');
+                }
+            })
+            .then((data) => {
+                // Handle successful login
+                const { jwt } = data;
+                if (jwt) {
+                    // Save token to localStorage
+                    localStorage.setItem('token', jwt);
+                    setError('Login successful!');
+
+                    // Redirect after 1 second
+                    setTimeout(() => {
+                        window.location.href = "/";
+                    }, 1000);
+                }
+            })
+            .catch((error) => {
+                // Handle login error
+                console.error('Login error: ', error);
+                setError('Login failed. Please check your username and password.');
+            });
     };
 
     return (
         <div className="container">
             <div className="form-signin" style={{ maxWidth: '400px', margin: 'auto', marginTop: '50px' }}>
                 <h1 className="h3 mb-3 fw-normal text-center">Sign In</h1>
-                
+
                 <div className="form-floating">
-                    <input 
-                        type="text" 
-                        className="form-control mb-2" 
-                        id="floatingInput" 
+                    <input
+                        type="text"
+                        className="form-control mb-2"
+                        id="floatingInput"
                         placeholder="Username"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
@@ -65,10 +73,10 @@ const Login = () => {
                 </div>
 
                 <div className="form-floating">
-                    <input 
-                        type="password" 
-                        className="form-control mb-2" 
-                        id="floatingPassword" 
+                    <input
+                        type="password"
+                        className="form-control mb-2"
+                        id="floatingPassword"
                         placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -80,11 +88,19 @@ const Login = () => {
                     <input className="form-check-input" type="checkbox" value="remember-me" id="checkDefault" />
                     <label className="form-check-label" htmlFor="checkDefault">
                         Remember me
-                    </label> 
+                    </label>
                 </div>
+                <p style={{ textAlign: "center", fontSize: 13, marginTop: 12 }}>
+                    <span
+                        style={{ color: "#888", cursor: "pointer" }}
+                        onClick={() => navigate("/forgot-password")}
+                    >
+                        Quên mật khẩu?
+                    </span>
+                </p>
 
-                <button 
-                    className="btn btn-primary w-100 py-2" 
+                <button
+                    className="btn btn-primary w-100 py-2"
                     type="submit"
                     onClick={handleLogin}
                 >

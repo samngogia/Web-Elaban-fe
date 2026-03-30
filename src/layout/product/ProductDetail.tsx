@@ -68,11 +68,13 @@ const ProductDetail: React.FC = () => {
 
 
     const handleMuaNgay = () => {
+        console.log("handleMuaNgay called"); // thêm dòng này đầu tiên
         const token = localStorage.getItem("token");
         if (!token) {
             alert("Vui lòng đăng nhập!");
             return;
         }
+        console.log("token ok:", token.substring(0, 20)); // xem token
 
         const tempCartItems = [{
             id: 0,
@@ -80,7 +82,13 @@ const ProductDetail: React.FC = () => {
             product: product
         }];
 
-        navigate("/checkout", { state: { cartItems: tempCartItems } });
+        // Lưu vào sessionStorage thay vì navigate state
+        sessionStorage.setItem("checkoutItems", JSON.stringify(tempCartItems));
+
+        // Kiểm tra đã lưu chưa
+        console.log("Saved to sessionStorage:", sessionStorage.getItem("checkoutItems"));
+
+        navigate("/checkout");
     };
 
 
@@ -241,6 +249,8 @@ const ProductDetail: React.FC = () => {
                                     >
                                         Mua ngay
                                     </button>
+
+
 
                                     <button
                                         className="btn btn-outline-dark w-100"

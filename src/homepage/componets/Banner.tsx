@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 function Banner(){
     return(
         <div className="p-5 mb-4 bg-dark ">
@@ -8,7 +9,7 @@ function Banner(){
                         Đọc sách chính là hộ chiếu <br/>để đi đến những vùng đất mới
                     </h3>
                     <p className="">Mary Pope Osborne</p>
-                    <button className="btn btn-primary btn-lg text-white float-end ">Xem thêm</button>
+                    <Link rel="stylesheet" to="/Introduce"><button className="btn btn-primary btn-lg text-white float-end " >Xem Thêm</button></Link>
                 </div>
 
             </div>

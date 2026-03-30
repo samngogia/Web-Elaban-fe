@@ -225,7 +225,7 @@ function Navbar({ searchKeyword, setSearchKeyword }: NavbarProps) {
                                 /* ĐÃ ĐĂNG NHẬP */
                                 <>
                                     <li><Link className="dropdown-item" to="/profile">Thông tin cá nhân</Link></li>
-                                    <li><Link className="dropdown-item" to="/order">Đơn hàng của tôi</Link></li>
+                                    <li><Link className="dropdown-item" to="/cart">Đơn hàng của tôi</Link></li>
                                     <li><hr className="dropdown-divider" /></li>
                                     <li>
                                         <button className="dropdown-item text-danger" onClick={handleLogout}>

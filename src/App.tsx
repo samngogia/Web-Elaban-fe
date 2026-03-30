@@ -16,6 +16,9 @@ import CartPage from './layout/cart/CartPage';
 import CheckoutPage from './layout/cart/CheckoutPage';
 import OrderSuccessPage from './layout/cart/OrderSuccessPage';
 import ContactPage from './layout/about/ContactPage';
+import ForgotPasswordPage from './layout/auth/ForgotPasswordPage';
+import PaymentResultPage from './layout/cart/PaymentResultPage';
+
 
 function App() {
   //Nó dùng để lưu và cập nhật từ khóa tìm kiếm mà người dùng nhập vào
@@ -46,6 +49,11 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/order-success" element={<OrderSuccessPage />} />
           <Route path='/contact' element={<ContactPage />} />
+
+
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+          <Route path="/payment-result" element={<PaymentResultPage />} />
         </Routes>
         <Footer />
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ProductModel from "../../../models/ProductModel";
-
+import { useNavigate } from "react-router-dom";
 import ImageModel from "../../../models/ImageModel";
 
 import { getFirstImageByProductId, getAllImagesByProductId } from "../../../api/ImageAPI";
@@ -14,6 +14,25 @@ interface ProductPropsInterface {
 }
 
 const ProductProps: React.FC<ProductPropsInterface> = (props) => {
+
+    const navigate = useNavigate();
+
+    const handleMuaNgay = () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("Vui lòng đăng nhập!");
+            return;
+        }
+        const tempCartItems = [{
+            id: 0,
+            quantity: 1,
+            product: props.product
+        }];
+        sessionStorage.setItem("checkoutItems", JSON.stringify(tempCartItems));
+        console.log("SET sessionStorage:", sessionStorage.getItem("checkoutItems")); // thêm dòng này
+
+        navigate("/checkout");
+    };
 
     const productId = props.product.id;
 
@@ -88,9 +107,15 @@ const ProductProps: React.FC<ProductPropsInterface> = (props) => {
                         <div className="col-6">
                             {renderRating(props.product.avgRating ? props.product.avgRating : 0)}
                         </div>
-                        <button type="button" className="btn btn-primary">
+
+                        <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={handleMuaNgay}
+                        >
                             Mua ngay
                         </button>
+
                         <button type="button" className="btn btn-outline-secondary">
                             Chi tiết
                         </button>
