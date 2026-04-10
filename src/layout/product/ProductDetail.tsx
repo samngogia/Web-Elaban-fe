@@ -9,7 +9,7 @@ import FormatNumber from "../utils/FormatNumber";
 import ProductReview from "./components/ProductReview";
 import ProductImage from "./components/ProductImage";
 import { jwtDecode } from "jwt-decode";
-import { addToCart } from "../../api/CartAPI";
+
 
 
 
@@ -20,24 +20,67 @@ const ProductDetail: React.FC = () => {
     //lay ma product tu URL
     const { productId } = useParams();
 
-    let productIdNumber: number = 0;
-    try {
-        productIdNumber = parseInt(productId + '');
-        if (Number.isNaN(productIdNumber)) {
-            productIdNumber = 0;
-        }
-    } catch (error) {
-        productIdNumber = 0;
-        console.error("Lỗi chuyển đổi productId thành số:", error);
-    }
-
+    const productIdNumber = parseInt(productId + '') || 0;
     //khai báo
-
+    const [quantity, setQuantity] = useState(1);
     const [product, setProduct] = useState<ProductModel | null>(null);
     const [imageList, setImageList] = useState<ImageModel[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [quantity, setQuantity] = useState(1);
+
+
+    const [isWishlisted, setIsWishlisted] = useState(false);
+    // Kiểm tra khi load trang
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+
+        if (!token || productIdNumber === 0) {
+            setIsWishlisted(false);
+            return;
+        }
+
+        try {
+            const decoded: any = jwtDecode(token);
+            console.log("decoded token:", decoded);
+
+            const userId = decoded.userId || decoded.id || decoded.sub;
+
+            if (!userId) return;
+
+            fetch(
+                `http://localhost:8089/api/wishlist/check?userId=${userId}&productId=${productIdNumber}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            )
+                .then((r) => r.json())
+                .then((data) => setIsWishlisted(data))
+                .catch(() => { });
+        } catch (error) {
+            console.error("Token invalid", error);
+        }
+    }, [productIdNumber]);
+
+
+    useEffect(() => {
+        if (productIdNumber === 0) {
+            setErrorMessage("Mã sản phẩm không hợp lệ");
+            setIsLoading(false);
+            return;
+        }
+
+        getProductById(productIdNumber)
+            .then((product) => {
+                setProduct(product);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                setErrorMessage(error.message);
+                setIsLoading(false);
+            });
+    }, [productIdNumber]);
 
 
     const increaseQuantity = () => {
@@ -48,8 +91,9 @@ const ProductDetail: React.FC = () => {
         }
 
     }
+    // Sửa lại logic giảm: Cho phép giảm xuống đến 1
     const reduceQuantity = () => {
-        if (quantity > 2) {
+        if (quantity > 1) {
             setQuantity(quantity - 1)
         }
     }
@@ -94,46 +138,109 @@ const ProductDetail: React.FC = () => {
 
 
 
-    // xử lý nút thêm giỏ hàng
-    const handleThemVaoGioHang = async () => {
+    const handleAddToCart = async () => {
         const token = localStorage.getItem("token");
+
         if (!token) {
-            alert("Vui lòng đăng nhập!");
-            return;
-        }
-
-        const decoded: any = jwtDecode(token);
-        console.log("Decoded token:", decoded); // xem token có gì
-
-        const userId = decoded.userId;
-        console.log("UserId:", userId);
-
-        if (!userId) {
-            alert("Không lấy được thông tin người dùng!");
+            alert("Vui lòng đăng nhập để thêm vào giỏ hàng!");
+            navigate("/login");
             return;
         }
 
         try {
-            await addToCart(Number(userId), productIdNumber, quantity);
-            alert("Đã thêm vào giỏ hàng!");
-        } catch (err: any) {
-            alert(err.message);
+            const decoded: any = jwtDecode(token);
+            const userId = decoded.userId || decoded.id || decoded.sub;
+
+            if (!userId) {
+                alert("Không lấy được thông tin người dùng!");
+                return;
+            }
+
+            const response = await fetch(
+                `http://localhost:8089/cart/add?userId=${userId}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        productId: productIdNumber,
+                        quantity: quantity,
+                    }),
+                }
+            );
+
+            if (response.ok) {
+                window.dispatchEvent(new Event("cartUpdated"));
+                alert("Đã thêm vào giỏ hàng!");
+            } else {
+                const text = await response.text();
+                console.log(text);
+                alert("Thêm vào giỏ hàng thất bại!");
+            }
+        } catch (error) {
+            console.error("Cart Error:", error);
+            alert("Có lỗi xảy ra khi kết nối đến server!");
         }
     };
 
-    useEffect(() => {
-        //Gọi API để lấy thông tin sách theo mã sách
-        //Giả sử bạn có hàm layproductTheoMa(productId: number): Promise<ProductModel>
-        getProductById(productIdNumber)
-            .then((product) => {
-                setProduct(product);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                setErrorMessage(error.message);
-                setIsLoading(false);
-            })
-    }, [productId]);
+
+
+    const handleToggleWishlist = async () => {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            alert("Vui lòng đăng nhập!");
+            navigate("/login");
+            return;
+        }
+
+        try {
+            const decoded: any = jwtDecode(token);
+            console.log("decoded token:", decoded);
+
+            const userId = decoded.userId || decoded.id || decoded.sub;
+
+            if (!userId) {
+                alert("Không lấy được userId từ token");
+                return;
+            }
+
+            const url = isWishlisted
+                ? `http://localhost:8089/api/wishlist/remove?userId=${userId}&productId=${productIdNumber}`
+                : `http://localhost:8089/api/wishlist/add?userId=${userId}&productId=${productIdNumber}`;
+
+            const response = await fetch(url, {
+                method: isWishlisted ? "DELETE" : "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
+
+            console.log("wishlist status:", response.status);
+
+            if (response.status === 401) {
+                alert("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
+                localStorage.removeItem("token");
+                navigate("/login");
+                return;
+            }
+
+            if (!response.ok) {
+                const text = await response.text();
+                console.log(text);
+                alert("Không thể cập nhật yêu thích");
+                return;
+            }
+
+            setIsWishlisted(!isWishlisted);
+        } catch (e) {
+            console.error(e);
+            alert("Có lỗi xảy ra khi kết nối đến server!");
+        }
+    };
 
 
     if (isLoading) {
@@ -250,11 +357,26 @@ const ProductDetail: React.FC = () => {
                                         Mua ngay
                                     </button>
 
-
+                                    <button
+                                        onClick={handleToggleWishlist}
+                                        style={{
+                                            background: "none",
+                                            border: "0.5px solid #ddd",
+                                            borderRadius: 8,
+                                            padding: "10px 14px",
+                                            fontSize: 18,
+                                            cursor: "pointer",
+                                            color: isWishlisted ? "#d32f2f" : "#aaa",
+                                        }}
+                                        title={isWishlisted ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
+                                    >
+                                        {isWishlisted ? "♥" : "♡"}
+                                    </button>
 
                                     <button
+                                        type="button"
                                         className="btn btn-outline-dark w-100"
-                                        onClick={handleThemVaoGioHang}
+                                        onClick={handleAddToCart}
                                     >
                                         Thêm vào giỏ
                                     </button>

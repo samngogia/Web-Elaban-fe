@@ -37,7 +37,7 @@ async function fetchProductList(path: string): Promise<ResultInterface> {
         return {
             result: [],
             totalPages: response.page?.totalPages || 0,
-            totalProduct: response.page?.totalElements  || 0
+            totalProduct: response.page?.totalElements || 0
         };
     }
 
@@ -46,7 +46,7 @@ async function fetchProductList(path: string): Promise<ResultInterface> {
 
     //lấy thông tin trang 
     const totalPages: number = response.page.totalPages;
-    const totalProduct: number = response.page.totalElements ;
+    const totalProduct: number = response.page.totalElements;
 
 
 
@@ -68,9 +68,17 @@ async function fetchProductList(path: string): Promise<ResultInterface> {
 
     return { result: result, totalPages: totalPages, totalProduct: totalProduct };
 }
-export async function getAllProducts(currentPage: number = 0, size: number = 8): Promise<ResultInterface> {
-    //xác định  endpoint
-    const path = `http://localhost:8089/products?sort=id,desc&size=${size}&page=${currentPage}   `;
+export async function getAllProducts(
+    currentPage: number = 0,
+    size: number = 8,
+    minPrice?: number,
+    maxPrice?: number,
+    sortBy: string = "id",
+    sortDir: string = "desc"
+): Promise<ResultInterface> {
+    let path = `http://localhost:8089/products?sort=${sortBy},${sortDir}&size=${size}&page=${currentPage}`;
+    if (minPrice !== undefined) path += `&minPrice=${minPrice}`;
+    if (maxPrice !== undefined) path += `&maxPrice=${maxPrice}`;
     return fetchProductList(path);
 }
 export async function getTop3LatestProducts(): Promise<ResultInterface> {

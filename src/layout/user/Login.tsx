@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 const Login = () => {
     const [username, setUsername] = useState(``);
@@ -12,7 +13,7 @@ const Login = () => {
 
 
 
-    
+
     // Handle login logic
     const handleLogin = () => {
         const loginRequest = {
@@ -35,17 +36,19 @@ const Login = () => {
                 }
             })
             .then((data) => {
-                // Handle successful login
                 const { jwt } = data;
-                if (jwt) {
-                    // Save token to localStorage
-                    localStorage.setItem('token', jwt);
-                    setError('Login successful!');
 
-                    // Redirect after 1 second
-                    setTimeout(() => {
-                        window.location.href = "/";
-                    }, 1000);
+                if (jwt) {
+                    localStorage.setItem("token", jwt);
+
+                    const decoded: any = jwtDecode(jwt);
+                    console.log(decoded);
+
+                    if (decoded.isAdmin) {
+                        navigate("/admin");
+                    } else {
+                        navigate("/");
+                    }
                 }
             })
             .catch((error) => {
@@ -112,7 +115,7 @@ const Login = () => {
                         {error}
                     </div>
                 )}
-                
+
                 <p className="mt-5 mb-3 text-body-secondary text-center">© 2026 ElaBan Furniture</p>
             </div>
         </div>

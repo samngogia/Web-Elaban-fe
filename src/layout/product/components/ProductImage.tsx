@@ -6,7 +6,7 @@ import ImageModel from "../../../models/ImageModel";
 import { getFirstImageByProductId, getAllImagesByProductId } from "../../../api/ImageAPI";
 import { Link } from "react-router-dom";
 import { Carousel } from "react-responsive-carousel";
-import 'react-responsive-carousel/lib/styles/carousel.min.css'; //import CSS cho carousel 
+
 
 interface ProductImage {
     productId: number;

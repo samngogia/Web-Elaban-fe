@@ -8,11 +8,14 @@ export interface CheckoutItem {
 
 export interface CheckoutRequest {
     userId: number;
+    fullName: string; 
+    phoneNumber: string;
     shippingAddress: string;
     billingAddress: string;
     paymentMethodId: number;
     shippingMethodId: number;
     items: CheckoutItem[];
+    note?: string;
 }
 
 export interface OrderResponse {

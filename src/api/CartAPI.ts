@@ -34,18 +34,20 @@ export async function addToCart(
 ): Promise<CartModel> {
     const token = localStorage.getItem("token");
 
-    const response = await fetch("http://localhost:8089/cart/add", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-            userId,
-            productId,
-            quantity
-        })
-    });
+    const response = await fetch(
+        `http://localhost:8089/cart/add?userId=${userId}`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                productId,
+                quantity
+            })
+        }
+    );
 
     if (!response.ok) {
         const message = await response.text();

@@ -46,10 +46,16 @@
 }
 
 .dropdown-submenu .dropdown-menu {
+    position: absolute;
     top: 0;
     left: 100%;
     margin-left: 0.1rem;
     display: none;
+    z-index: 1000;
+}
+
+.dropdown-submenu .dropdown-menu.show {
+    display: block;
 }
 
 .dropdown-submenu:hover .dropdown-menu {

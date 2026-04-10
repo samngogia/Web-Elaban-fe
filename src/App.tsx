@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './App.css';
+
 import Navbar from './layout/header/Navbar';
 import Footer from './layout/header/Footer';
 import HomePage from './homepage/HomePage';
@@ -18,6 +18,18 @@ import OrderSuccessPage from './layout/cart/OrderSuccessPage';
 import ContactPage from './layout/about/ContactPage';
 import ForgotPasswordPage from './layout/auth/ForgotPasswordPage';
 import PaymentResultPage from './layout/cart/PaymentResultPage';
+import AdminDashboard from './layout/admin/AdminDashboard';
+import AdminProduct from './layout/admin/AdminProduct';
+import AdminOrder from './layout/admin/AdminOrder';
+import AdminCategory from './layout/admin/AdminCategory';
+import AdminUser from './layout/admin/AdminUser';
+import AdminLayoutWrapped from './layout/admin/AdminLayoutWrapped';
+import { Chat } from 'react-bootstrap-icons';
+import Chatbot from './layout/utils/Chatbot';
+import MyOrdersPage from './layout/cart/MyOrdersPage';
+import AdminReview from './layout/admin/AdminReview';
+import WishListPage from './layout/user/WishListPage';
+
 
 
 function App() {
@@ -28,6 +40,7 @@ function App() {
     <div className='App'>
 
       <BrowserRouter>
+        <Chatbot />
         <Navbar searchKeyword={searchKeyword} setSearchKeyword={setSearchKeyword} />
 
         <Routes>
@@ -54,6 +67,24 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
           <Route path="/payment-result" element={<PaymentResultPage />} />
+
+          <Route path="/my-orders" element={<MyOrdersPage />} />
+
+          
+          <Route path="/wishlist" element={<WishListPage />} />
+
+
+          {/* Admin routes */}
+          <Route path="/admin" element={<AdminLayoutWrapped />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="/admin/products" element={<AdminProduct />} />
+            <Route path="/admin/orders" element={<AdminOrder />} />
+            <Route path="/admin/categories" element={<AdminCategory />} />
+            <Route path="/admin/users" element={<AdminUser />} />
+            <Route path="/admin/reviews" element={<AdminReview />} />
+          </Route>
+
+
         </Routes>
         <Footer />
 
