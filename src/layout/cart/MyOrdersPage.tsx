@@ -16,6 +16,9 @@ const MyOrdersPage: React.FC = () => {
         return decoded.userId ?? 0;
     };
 
+    
+    const userId = getUserId();
+
     useEffect(() => {
         const token = localStorage.getItem("token");
 
@@ -24,12 +27,8 @@ const MyOrdersPage: React.FC = () => {
             return;
         }
 
-        fetch("http://localhost:8089/orders/my-orders", {
-            method: "GET",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
+        fetch(`http://localhost:8089/order/my-orders/${userId}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         })
             .then(async (res) => {
                 if (!res.ok) {

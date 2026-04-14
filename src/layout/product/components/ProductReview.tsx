@@ -2,22 +2,24 @@ import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import renderRating from "../../utils/StarRating";
 
+
+
 interface ProductReviewProps {
     productId: number;
 }
 
 const ProductReview: React.FC<ProductReviewProps> = ({ productId }) => {
-    const [reviewList, setReviewList]   = useState<any[]>([]);
-    const [isLoading, setIsLoading]     = useState(true);
-    const [error, setError]             = useState<string | null>(null);
+    const [reviewList, setReviewList] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     // Form state
-    const [rating, setRating]           = useState<number>(5);
-    const [content, setContent]         = useState("");
+    const [rating, setRating] = useState<number>(5);
+    const [content, setContent] = useState("");
     const [hoverRating, setHoverRating] = useState<number>(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [submitMsg, setSubmitMsg]     = useState("");
-    const [isError, setIsError]         = useState(false);
+    const [submitMsg, setSubmitMsg] = useState("");
+    const [isError, setIsError] = useState(false);
 
     const getUserId = (): number => {
         const token = localStorage.getItem("token");
@@ -29,7 +31,7 @@ const ProductReview: React.FC<ProductReviewProps> = ({ productId }) => {
     };
 
     const fetchReviews = () => {
-        fetch(`http://localhost:8089/reviews/search/findByProduct_IdOrderByCreatedDateDesc?productId=${productId}`)
+        fetch(`http://localhost:8089/reviews/search/findByProduct_IdAndApprovedTrueOrderByCreatedDateDesc?productId=${productId}`)
             .then(r => r.json())
             .then(data => {
                 setReviewList(data._embedded?.reviews ?? []);
@@ -66,11 +68,11 @@ const ProductReview: React.FC<ProductReviewProps> = ({ productId }) => {
             });
             const text = await res.text();
             if (res.ok) {
-                setSubmitMsg("Cảm ơn bạn đã đánh giá!");
+                setSubmitMsg("Đánh giá đã được gửi, chờ admin duyệt!");  // đổi message
                 setIsError(false);
                 setContent("");
                 setRating(5);
-                fetchReviews(); // reload danh sách
+                // KHÔNG gọi fetchReviews() vì review chưa được duyệt
             } else {
                 setSubmitMsg(text);
                 setIsError(true);
@@ -84,21 +86,21 @@ const ProductReview: React.FC<ProductReviewProps> = ({ productId }) => {
     };
 
     const s: Record<string, React.CSSProperties> = {
-        section:    { marginTop: 32 },
-        title:      { fontSize: 16, fontWeight: 500, marginBottom: 20 },
-        formCard:   { background: "#fafaf8", borderRadius: 10, padding: 20, marginBottom: 24, border: "0.5px solid #e8e5e0" },
-        formTitle:  { fontSize: 14, fontWeight: 500, marginBottom: 16 },
-        starRow:    { display: "flex", gap: 4, marginBottom: 16 },
-        star:       { fontSize: 28, cursor: "pointer", transition: "transform 0.1s" },
-        textarea:   { width: "100%", padding: "10px 14px", border: "0.5px solid #ddd", borderRadius: 8, fontSize: 13, resize: "vertical" as const, minHeight: 80, boxSizing: "border-box" as const, marginBottom: 12 },
-        submitBtn:  { background: "#1a1a1a", color: "#fff", border: "none", borderRadius: 8, padding: "10px 24px", fontSize: 13, cursor: "pointer" },
-        msg:        { fontSize: 13, padding: "8px 12px", borderRadius: 8, marginTop: 10 },
+        section: { marginTop: 32 },
+        title: { fontSize: 16, fontWeight: 500, marginBottom: 20 },
+        formCard: { background: "#fafaf8", borderRadius: 10, padding: 20, marginBottom: 24, border: "0.5px solid #e8e5e0" },
+        formTitle: { fontSize: 14, fontWeight: 500, marginBottom: 16 },
+        starRow: { display: "flex", gap: 4, marginBottom: 16 },
+        star: { fontSize: 28, cursor: "pointer", transition: "transform 0.1s" },
+        textarea: { width: "100%", padding: "10px 14px", border: "0.5px solid #ddd", borderRadius: 8, fontSize: 13, resize: "vertical" as const, minHeight: 80, boxSizing: "border-box" as const, marginBottom: 12 },
+        submitBtn: { background: "#1a1a1a", color: "#fff", border: "none", borderRadius: 8, padding: "10px 24px", fontSize: 13, cursor: "pointer" },
+        msg: { fontSize: 13, padding: "8px 12px", borderRadius: 8, marginTop: 10 },
         reviewItem: { borderBottom: "0.5px solid #f0ede8", paddingBottom: 16, marginBottom: 16 },
-        reviewer:   { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
-        name:       { fontSize: 13, fontWeight: 500 },
-        date:       { fontSize: 11, color: "#aaa" },
+        reviewer: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
+        name: { fontSize: 13, fontWeight: 500 },
+        date: { fontSize: 11, color: "#aaa" },
         reviewText: { fontSize: 13, color: "#555", lineHeight: 1.6 },
-        noReview:   { fontSize: 13, color: "#aaa", fontStyle: "italic" },
+        noReview: { fontSize: 13, color: "#aaa", fontStyle: "italic" },
     };
 
     return (
@@ -175,7 +177,7 @@ const ProductReview: React.FC<ProductReviewProps> = ({ productId }) => {
                             </span>
                         </div>
                         <div style={{ marginBottom: 6 }}>
-                            {[1,2,3,4,5].map(s => (
+                            {[1, 2, 3, 4, 5].map(s => (
                                 <span key={s} style={{ color: s <= review.rating ? "#f5a623" : "#ddd", fontSize: 16 }}>★</span>
                             ))}
                         </div>
@@ -183,7 +185,10 @@ const ProductReview: React.FC<ProductReviewProps> = ({ productId }) => {
                     </div>
                 ))
             )}
+
         </div>
+
+
     );
 };
 

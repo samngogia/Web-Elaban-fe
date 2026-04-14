@@ -5,7 +5,7 @@ import React from "react";
 
 // =====================
 
-interface ResultInterface {
+export interface ResultInterface {
     result: ProductModel[];
     totalPages: number;
     totalProduct: number;
@@ -146,3 +146,32 @@ export async function getProductById(productId: number): Promise<ProductModel | 
 
 }
 
+
+
+export async function filterProducts(
+    page: number = 0,
+    size: number = 8,
+    name: string = "",
+    minPrice?: number,
+    maxPrice?: number,
+    sortBy: string = "id",
+    sortDir: string = "desc",
+    categoryId?: number
+): Promise<ResultInterface> {
+    let path = "";
+
+    if (categoryId && categoryId > 0) {
+        path = `http://localhost:8089/products/search/findByCategoryAndPrice` +
+               `?categoryId=${categoryId}` +
+               `&page=${page}&size=${size}&sort=${sortBy},${sortDir}`;
+    } else {
+        path = `http://localhost:8089/products/search/findByFilter` +
+               `?name=${encodeURIComponent(name)}` +
+               `&page=${page}&size=${size}&sort=${sortBy},${sortDir}`;
+    }
+
+    if (minPrice !== undefined) path += `&minPrice=${minPrice}`;
+    if (maxPrice !== undefined) path += `&maxPrice=${maxPrice}`;
+
+    return fetchProductList(path);
+}

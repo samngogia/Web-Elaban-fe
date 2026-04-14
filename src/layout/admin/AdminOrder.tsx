@@ -47,25 +47,48 @@ const AdminOrder: React.FC = () => {
         fetchOrders();
     }, []);
 
-    const handlePaymentChange = async (
-        orderId: number,
-        status: string
-    ) => {
+    const handlePaymentChange = async (orderId: number, status: string) => {
         try {
-            await updatePaymentStatus(orderId, status);
+            console.log("Token:", localStorage.getItem("token")); // kiểm tra token
 
-            setOrders((prev) =>
-                prev.map((o) =>
-                    o.id === orderId
-                        ? { ...o, paymentStatus: status }
-                        : o
-                )
+            const res = await fetch(
+                `http://localhost:8089/admin/orders/${orderId}/payment-status?status=${status}`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+            console.log("Response status:", res.status); // kiểm tra status
+
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+            setOrders(prev =>
+                prev.map(o => o.id === orderId ? { ...o, paymentStatus: status } : o)
             );
         } catch (err) {
             console.error(err);
             alert("Không thể cập nhật trạng thái thanh toán");
         }
     };
+
+
+    // Thêm auto-refresh
+    useEffect(() => {
+        fetchOrders();
+
+        // Tự động reload mỗi 30 giây
+        const interval = setInterval(() => {
+            fetchOrders();
+        }, 30000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+
 
     const handleShippingChange = async (
         orderId: number,
@@ -184,6 +207,20 @@ const AdminOrder: React.FC = () => {
                 <div>
                     <h2 style={s.title}>Quản lý đơn hàng</h2>
                     <div style={s.sub}>Theo dõi và cập nhật trạng thái đơn hàng</div>
+                    {/* Thêm nút này */}
+                    <button
+                        style={{
+                            background: "none",
+                            border: "0.5px solid #ddd",
+                            borderRadius: 8,
+                            padding: "8px 16px",
+                            fontSize: 13,
+                            cursor: "pointer"
+                        }}
+                        onClick={() => fetchOrders()}
+                    >
+                        🔄 Làm mới
+                    </button>
                 </div>
             </div>
 

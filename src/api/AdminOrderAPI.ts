@@ -44,6 +44,7 @@ export async function getAllOrders() {
 }
 
 export async function updatePaymentStatus(orderId: number, status: string) {
+    console.log("Auth header:", authHeader()); // thêm dòng này
     const response = await fetch(
         `${API}/${orderId}/payment-status?status=${status}`,
         {

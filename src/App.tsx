@@ -29,6 +29,7 @@ import Chatbot from './layout/utils/Chatbot';
 import MyOrdersPage from './layout/cart/MyOrdersPage';
 import AdminReview from './layout/admin/AdminReview';
 import WishListPage from './layout/user/WishListPage';
+import ProfilePage from './layout/user/ProfilePage';
 
 
 
@@ -69,8 +70,8 @@ function App() {
           <Route path="/payment-result" element={<PaymentResultPage />} />
 
           <Route path="/my-orders" element={<MyOrdersPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
 
-          
           <Route path="/wishlist" element={<WishListPage />} />
 
 

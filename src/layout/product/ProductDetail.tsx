@@ -9,7 +9,10 @@ import FormatNumber from "../utils/FormatNumber";
 import ProductReview from "./components/ProductReview";
 import ProductImage from "./components/ProductImage";
 import { jwtDecode } from "jwt-decode";
+// Thêm import ở đầu file
 
+import { getFirstImageByProductId } from "../../api/ImageAPI";
+import RecommendationCarousel from "./components/Recommendationcarousel";
 
 
 
@@ -30,6 +33,13 @@ const ProductDetail: React.FC = () => {
 
 
     const [isWishlisted, setIsWishlisted] = useState(false);
+
+
+    const [recommendations, setRecommendations] = useState<any[]>([]);
+    const [recImages, setRecImages] = useState<Record<number, string>>({});
+
+
+
     // Kiểm tra khi load trang
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -81,6 +91,28 @@ const ProductDetail: React.FC = () => {
                 setIsLoading(false);
             });
     }, [productIdNumber]);
+
+
+
+
+    useEffect(() => {
+        fetch(`http://localhost:8089/api/recommendations/${productIdNumber}`)
+            .then(r => r.json())
+            .then(async (data: any[]) => {
+                setRecommendations(data);
+                // Load ảnh song song
+                const imgMap: Record<number, string> = {};
+                await Promise.all(data.map(async (p: any) => {
+                    try {
+                        const imgs = await getFirstImageByProductId(p.id);
+                        imgMap[p.id] = imgs[0]?.url ?? "";
+                    } catch { }
+                }));
+                setRecImages(imgMap);
+            })
+            .catch(() => { });
+    }, [productIdNumber]);
+
 
 
     const increaseQuantity = () => {
@@ -412,6 +444,57 @@ const ProductDetail: React.FC = () => {
                         <h4>Đánh giá sản phẩm</h4>
                         <ProductReview productId={productIdNumber} />
                     </div>
+
+                    {/* ===== THÊM VÀO ĐÂY ===== */}
+                    <RecommendationCarousel
+                        productId={productIdNumber}
+                        type="similar"
+                    />
+
+                    <RecommendationCarousel
+                        productId={productIdNumber}
+                        type="bought-together"
+                    />
+
+                    {recommendations.length > 0 && (
+                        <div className="card shadow mt-4 p-4">
+                            <h4 style={{ fontSize: 18, fontWeight: 500, marginBottom: 20 }}>
+                                Có thể bạn cũng thích
+                            </h4>
+                            <div className="row">
+                                {recommendations.slice(0, 4).map(p => (
+                                    <div key={p.id} className="col-md-3 mb-3">
+                                        <div className="card h-100" style={{ border: "0.5px solid #e8e5e0", borderRadius: 10 }}>
+                                            <Link to={`/product/${p.id}`}>
+                                                <img
+                                                    src={recImages[p.id] || "/no-image.png"}
+                                                    alt={p.name}
+                                                    style={{ width: "100%", height: 160, objectFit: "cover", borderRadius: "10px 10px 0 0" }}
+                                                />
+                                            </Link>
+                                            <div className="p-3">
+                                                <Link to={`/product/${p.id}`} style={{ textDecoration: "none", color: "#1a1a1a" }}>
+                                                    <p style={{ fontSize: 13, fontWeight: 500, marginBottom: 6, lineHeight: 1.4 }}>
+                                                        {p.name}
+                                                    </p>
+                                                </Link>
+                                                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                                                    <span style={{ fontSize: 15, fontWeight: 600, color: "#d0021b" }}>
+                                                        {FormatNumber(p.sellingPrice)}đ
+                                                    </span>
+                                                    {p.listPrice > p.sellingPrice && (
+                                                        <span style={{ fontSize: 11, color: "#aaa", textDecoration: "line-through" }}>
+                                                            {FormatNumber(p.listPrice)}đ
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

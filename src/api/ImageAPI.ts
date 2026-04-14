@@ -1,8 +1,17 @@
-import path from "path";
+
+
+
+
 import ImageModel from "../models/ImageModel";
 import { my_request } from "./request";
 
+
 const IMAGE_BASE_URL = "http://localhost:8089/images";
+declare var process: {
+  env: {
+    [key: string]: string;
+  };
+};
 const API_BASE = process.env.REACT_APP_API_BASE_URL ?? ""; // set in .env if needed or use proxy in dev
 
 // Helper chung để lấy ảnh từ một đường dẫn (duongDan có thể là relative như `/sach/...`)

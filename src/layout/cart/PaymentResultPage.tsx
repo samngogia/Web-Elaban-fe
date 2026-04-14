@@ -12,6 +12,12 @@ const PaymentResultPage: React.FC = () => {
             setIsSuccess(true);
             // Gọi backend xác nhận
             fetch(`http://localhost:8089/vnpay/payment-return?${searchParams.toString()}`)
+                .then(() => {
+                    // Đợi 1 giây rồi redirect về trang đơn hàng
+                    setTimeout(() => {
+                        navigate("/my-orders");
+                    }, 2000);
+                })
                 .catch(console.error);
         } else {
             setIsSuccess(false);
@@ -50,5 +56,5 @@ const PaymentResultPage: React.FC = () => {
         </div>
     );
 };
-export {};
+export { };
 export default PaymentResultPage;
