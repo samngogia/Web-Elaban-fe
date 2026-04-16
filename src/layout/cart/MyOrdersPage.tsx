@@ -16,7 +16,7 @@ const MyOrdersPage: React.FC = () => {
         return decoded.userId ?? 0;
     };
 
-    
+
     const userId = getUserId();
 
     useEffect(() => {
@@ -54,32 +54,114 @@ const MyOrdersPage: React.FC = () => {
     }, [navigate]);
 
     const getPaymentBadge = (status: string): React.CSSProperties => {
-        if (status === "PAID") return { background: "#EAF3DE", color: "#27500A" };
-        if (status === "REFUNDED") return { background: "#FCEBEB", color: "#791F1F" };
-        return { background: "#FAEEDA", color: "#633806" };
+        if (status === "PAID") return { background: "#e6f4ea", color: "#2e7d32" };
+        if (status === "REFUNDED") return { background: "#fdecea", color: "#c62828" };
+        return { background: "#fff4e5", color: "#ef6c00" };
     };
 
     const getShippingBadge = (status: string): React.CSSProperties => {
-        if (status === "DELIVERED") return { background: "#EAF3DE", color: "#27500A" };
-        if (status === "CANCELLED") return { background: "#FCEBEB", color: "#791F1F" };
-        if (status === "SHIPPING") return { background: "#E6F1FB", color: "#0C447C" };
-        return { background: "#f0f0f0", color: "#666" };
+        if (status === "DELIVERED") return { background: "#e6f4ea", color: "#2e7d32" };
+        if (status === "CANCELLED") return { background: "#fdecea", color: "#c62828" };
+        if (status === "SHIPPING") return { background: "#e3f2fd", color: "#1565c0" };
+        return { background: "#eeeeee", color: "#666" };
     };
 
     const s: Record<string, React.CSSProperties> = {
-        page: { minHeight: "100vh", background: "#f8f7f4", padding: "40px 0", fontFamily: "sans-serif" },
-        container: { maxWidth: 800, margin: "0 auto", padding: "0 20px" },
-        heading: { fontSize: 24, fontWeight: 400, marginBottom: 24, color: "#1a1a1a" },
-        card: { background: "#fff", borderRadius: 12, border: "0.5px solid #e8e5e0", marginBottom: 16, overflow: "hidden" },
-        cardHeader: { padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", borderBottom: "0.5px solid #f0ede8" },
-        orderId: { fontSize: 14, fontWeight: 500, color: "#1a1a1a" },
-        badge: { padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 500 },
-        cardBody: { padding: "16px 20px" },
-        detailRow: { display: "flex", justifyContent: "space-between", fontSize: 13, color: "#555", marginBottom: 8 },
-        productRow: { display: "flex", justifyContent: "space-between", fontSize: 13, padding: "8px 0", borderBottom: "0.5px solid #f5f5f5" },
-        total: { display: "flex", justifyContent: "space-between", fontSize: 15, fontWeight: 500, paddingTop: 12, marginTop: 4 },
-        emptyText: { textAlign: "center" as const, color: "#aaa", padding: "60px 0", fontSize: 14 },
-        shopBtn: { display: "inline-block", marginTop: 16, padding: "10px 24px", background: "#1a1a1a", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, cursor: "pointer" },
+        page: {
+            minHeight: "100vh",
+            background: "#f5f6fa",
+            padding: "40px 0",
+            fontFamily: "Inter, sans-serif"
+        },
+        container: {
+            maxWidth: 900,
+            margin: "0 auto",
+            padding: "0 16px"
+        },
+        heading: {
+            fontSize: 26,
+            fontWeight: 600,
+            marginBottom: 24,
+            color: "#222"
+        },
+        card: {
+            background: "#fff",
+            borderRadius: 16,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+            marginBottom: 16,
+            overflow: "hidden",
+            transition: "all 0.25s ease"
+        },
+        cardHeader: {
+            padding: "18px 20px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            cursor: "pointer",
+            borderBottom: "1px solid #f1f1f1"
+        },
+        orderId: {
+            fontSize: 15,
+            fontWeight: 600,
+            color: "#111"
+        },
+        date: {
+            fontSize: 12,
+            color: "#888",
+            marginTop: 4
+        },
+        badge: {
+            padding: "4px 12px",
+            borderRadius: 999,
+            fontSize: 11,
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.3px"
+        },
+        cardBody: {
+            padding: "16px 20px",
+            background: "#fafafa"
+        },
+        detailRow: {
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: 13,
+            marginBottom: 6,
+            color: "#444"
+        },
+        productRow: {
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: 13,
+            padding: "10px 0",
+            borderBottom: "1px dashed #eee"
+        },
+        total: {
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: 16,
+            fontWeight: 600,
+            paddingTop: 12
+        },
+        totalPrice: {
+            color: "#e53935"
+        },
+        emptyText: {
+            textAlign: "center",
+            color: "#999",
+            padding: "60px 0",
+            fontSize: 14
+        },
+        shopBtn: {
+            marginTop: 16,
+            padding: "10px 24px",
+            background: "#111",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            cursor: "pointer",
+            fontSize: 13
+        }
     };
 
     if (isLoading) return (
@@ -104,18 +186,24 @@ const MyOrdersPage: React.FC = () => {
                     </div>
                 ) : (
                     orders.map(order => (
-                        <div key={order.id} style={s.card}>
+                        <div
+                            key={order.id}
+                            style={s.card}
+                            onMouseEnter={e => e.currentTarget.style.transform = "translateY(-4px)"}
+                            onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
+                        >
                             {/* Header */}
                             <div
                                 style={s.cardHeader}
                                 onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
                             >
                                 <div>
-                                    <span style={s.orderId}>Đơn #{order.id}</span>
-                                    <span style={{ fontSize: 12, color: "#aaa", marginLeft: 12 }}>
+                                    <div style={s.orderId}>Đơn hàng #{order.id}</div>
+                                    <div style={s.date}>
                                         {new Date(order.createdDate).toLocaleDateString("vi-VN")}
-                                    </span>
+                                    </div>
                                 </div>
+
                                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                                     <span style={{ ...s.badge, ...getPaymentBadge(order.paymentStatus) }}>
                                         {order.paymentStatus}
@@ -129,7 +217,7 @@ const MyOrdersPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Body — mở rộng khi click */}
+                            {/* Body */}
                             {expandedId === order.id && (
                                 <div style={s.cardBody}>
                                     <div style={s.detailRow}>
@@ -142,24 +230,44 @@ const MyOrdersPage: React.FC = () => {
                                     </div>
                                     <div style={s.detailRow}>
                                         <span>Địa chỉ giao hàng</span>
-                                        <span style={{ maxWidth: 300, textAlign: "right" as const }}>
+                                        <span style={{ maxWidth: 300, textAlign: "right" }}>
                                             {order.shippingAddress}
                                         </span>
                                     </div>
 
-                                    <div style={{ borderTop: "0.5px solid #f0ede8", margin: "12px 0" }} />
+                                    <div style={{ borderTop: "1px solid #eee", margin: "12px 0" }} />
 
-                                    {/* Danh sách sản phẩm */}
                                     {order.orderDetails?.map((detail: any, i: number) => (
                                         <div key={i} style={s.productRow}>
-                                            <span>{detail.productName} × {detail.quantity}</span>
-                                            <span>{FormatNumber(detail.price * detail.quantity)}đ</span>
+                                            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                                                <img
+                                                    src={
+                                                        detail.image?.startsWith("http")
+                                                            ? detail.image
+                                                            : `http://localhost:8089/images/${detail.image}`
+                                                    }
+                                                    style={{
+                                                        width: 50,
+                                                        height: 50,
+                                                        borderRadius: 8,
+                                                        objectFit: "cover"
+                                                    }}
+                                                    alt=""
+                                                />
+                                                <div>
+                                                    <div style={{ fontWeight: 500 }}>{detail.productName}</div>
+                                                    <div style={{ color: "#888", fontSize: 12 }}>Số lượng: {detail.quantity}</div>
+                                                </div>
+                                            </div>
+                                            <span style={{ fontWeight: 600 }}>{FormatNumber(detail.price * detail.quantity)}đ</span>
                                         </div>
                                     ))}
 
                                     <div style={s.total}>
                                         <span>Tổng cộng</span>
-                                        <span style={{ color: "#d0021b" }}>{FormatNumber(order.totalAmount)}đ</span>
+                                        <span style={s.totalPrice}>
+                                            {FormatNumber(order.totalAmount)}đ
+                                        </span>
                                     </div>
                                 </div>
                             )}
@@ -170,5 +278,4 @@ const MyOrdersPage: React.FC = () => {
         </div>
     );
 };
-
 export default MyOrdersPage;

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Register() {
     const [username, setUsername] = useState("");
@@ -10,7 +11,7 @@ function Register() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [gender, setGender] = useState("M");
     const [avatar, setAvatar] = useState<File | null>(null);
-
+    const navigate = useNavigate();
     // Error message states
     const [errorUsername, setErrorUsername] = useState("");
     const [errorEmail, setErrorEmail] = useState("");
@@ -18,6 +19,8 @@ function Register() {
     const [errorConfirmPassword, setErrorConfirmPassword] = useState("");
     const [notification, setNotification] = useState("");
 
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     // Convert file to Base64
     const getBase64 = (file: File): Promise<string | null> => {
         return new Promise((resolve, reject) => {
@@ -170,12 +173,13 @@ function Register() {
     };
 
     return (
-        <div className="container">
-            <h1 className="mt-5 text-center">Register</h1>
-            <div className="mb-3 col-md-6 col-12 mx-auto">
+        <div className="register-wrapper">
+            <div className="register-card">
+                <h2 className="text-center mb-4">Đăng ký tài khoản</h2>
+
                 <form onSubmit={handleSubmit} className="form">
                     <div className="mb-3">
-                        <label htmlFor="username" className="form-label">Username</label>
+                        <label htmlFor="username" className="form-label">Tên đăng nhập</label>
                         <input
                             type="text"
                             id="username"
@@ -199,31 +203,63 @@ function Register() {
                     </div>
 
                     <div className="mb-3">
-                        <label htmlFor="password" className="form-label">Password</label>
-                        <input
-                            type="password"
-                            id="password"
-                            className="form-control"
-                            value={password}
-                            onChange={handlePasswordChange}
-                        />
-                        <div style={{ color: "red" }}>{errorPassword}</div>
+                        <label htmlFor="password" className="form-label">Mật Khẩu</label>
+                        {/* Đảm bảo password-wrapper có CSS position: relative */}
+                        <div className="password-wrapper" style={{ position: "relative" }}>
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                id="password"
+                                className="form-control" // Đã xóa dấu cách thừa
+                                value={password}
+                                onChange={handlePasswordChange}
+                                autoComplete="new-password" // Thêm để kiểm soát gợi ý mật khẩu
+                            />
+                            <span
+                                onClick={() => setShowPassword(!showPassword)}
+                                style={{
+                                    position: "absolute",
+                                    right: "10px",
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                    cursor: "pointer",
+                                    zIndex: 10 // Thêm z-index để icon luôn nằm trên input
+                                }}
+                            >
+                                {showPassword ? "👁️‍🗨️" : "👁️"}
+                            </span>
+                        </div>
+                        <div className="text-error" style={{ color: 'red', fontSize: '0.875rem' }}>{errorPassword}</div>
                     </div>
 
                     <div className="mb-3">
-                        <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
-                        <input
-                            type="password"
-                            id="confirmPassword"
-                            className="form-control"
-                            value={confirmPassword}
-                            onChange={handleConfirmPasswordChange}
-                        />
-                        <div style={{ color: "red" }}>{errorConfirmPassword}</div>
+                        <label htmlFor="confirmPassword" className="form-label">Xác nhận mật khẩu</label>
+                        <div style={{ position: "relative" }}>
+                            <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                id="confirmPassword"
+                                className="form-control"
+                                value={confirmPassword}
+                                onChange={handleConfirmPasswordChange}
+                            />
+                            <span
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                style={{
+                                    position: "absolute",
+                                    right: "10px",
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                    cursor: "pointer"
+
+                                }}
+                            >
+                                {showPassword ? "👁️‍🗨️" : "👁️"}
+                            </span>
+                        </div>
+                        <div className="text-error">{errorConfirmPassword}</div>
                     </div>
 
                     <div className="mb-3">
-                        <label htmlFor="firstName" className="form-label">First Name</label>
+                        <label htmlFor="firstName" className="form-label">Tên</label>
                         <input
                             type="text"
                             id="firstName"
@@ -234,7 +270,7 @@ function Register() {
                     </div>
 
                     <div className="mb-3">
-                        <label htmlFor="lastName" className="form-label">Last Name</label>
+                        <label htmlFor="lastName" className="form-label">Họ</label>
                         <input
                             type="text"
                             id="lastName"
@@ -245,7 +281,7 @@ function Register() {
                     </div>
 
                     <div className="mb-3">
-                        <label htmlFor="phoneNumber" className="form-label">Phone Number</label>
+                        <label htmlFor="phoneNumber" className="form-label">Số điện thoại</label>
                         <input
                             type="text"
                             id="phoneNumber"
@@ -256,15 +292,15 @@ function Register() {
                     </div>
 
                     <div className="mb-3">
-                        <label htmlFor="gender" className="form-label">Gender</label>
+                        <label htmlFor="gender" className="form-label">Giới tính</label>
                         <select
                             className="form-control"
                             id="gender"
                             value={gender}
                             onChange={(e) => setGender(e.target.value)}
                         >
-                            <option value="M">Male</option>
-                            <option value="F">Female</option>
+                            <option value="M">Nam</option>
+                            <option value="F">Nữ</option>
                         </select>
                     </div>
 
@@ -280,11 +316,103 @@ function Register() {
                     </div>
 
                     <div className="text-center">
-                        <button type="submit" className="btn btn-primary">Register</button>
+                        <button type="submit" className="btn btn-primary">Đăng ký</button>
                         <div style={{ color: "green" }} className="mt-2">{notification}</div>
+                    </div>
+                    <div className="text-center mt-3">
+                        <span style={{ fontSize: 14 }}>
+                            Đã có tài khoản?{" "}
+                            <span
+                                className="link strong"
+                                onClick={() => navigate("/login")}
+                                style={{ color: "#ee4d2d", cursor: "pointer", fontWeight: 600 }}
+                            >
+                                Đăng nhập
+                            </span>
+                        </span>
                     </div>
                 </form>
             </div>
+            <style>
+                {`
+.register-wrapper {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #fff6f3, #ffffff);
+}
+
+.register-card {
+    width: 450px;
+    background: #fff;
+    padding: 30px;
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+
+/* input đẹp hơn */
+.form-control {
+    border-radius: 8px !important;
+    padding: 10px 12px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+/* focus kiểu Shopee */
+.form-control:focus {
+    border-color: #ee4d2d !important;
+    box-shadow: 0 0 0 2px rgba(238,77,45,0.15) !important;
+}
+
+/* label đẹp hơn */
+.form-label {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* icon mắt */
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper span {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #888;
+}
+
+/* button */
+.btn-primary {
+    width: 100%;
+    border-radius: 8px;
+    background-color: #ee4d2d;
+    border: none;
+    padding: 10px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #d8431f;
+}
+
+/* error */
+.text-error {
+    color: red;
+    font-size: 13px;
+}
+
+/* success */
+.text-success {
+    color: green;
+    font-size: 14px;
+}
+`}
+            </style>
         </div>
     );
 }

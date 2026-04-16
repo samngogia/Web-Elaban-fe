@@ -30,6 +30,9 @@ import MyOrdersPage from './layout/cart/MyOrdersPage';
 import AdminReview from './layout/admin/AdminReview';
 import WishListPage from './layout/user/WishListPage';
 import ProfilePage from './layout/user/ProfilePage';
+import AuthLayout from './layout/AuthLayout';
+import MainLayout from './layout/MainLayout';
+
 
 
 
@@ -42,38 +45,42 @@ function App() {
 
       <BrowserRouter>
         <Chatbot />
-        <Navbar searchKeyword={searchKeyword} setSearchKeyword={setSearchKeyword} />
+
 
         <Routes>
+          <Route
+            element={
+              <MainLayout
+                searchKeyword={searchKeyword}
+                setSearchKeyword={setSearchKeyword}
+              />
+            }
+          >
+            <Route path='/' element={<HomePage searchKeyword={searchKeyword} />} />
+            <Route path='/HomePage' element={<HomePage searchKeyword={searchKeyword} />} />
+            <Route path='/category/:categoryId' element={<HomePage searchKeyword={searchKeyword} />} />
 
-          <Route path='/' element={<HomePage searchKeyword={searchKeyword} />} />
-          <Route path='/HomePage' element={<HomePage searchKeyword={searchKeyword} />} />
-          <Route path='/category/:categoryId' element={<HomePage searchKeyword={searchKeyword} />} />
-          <Route path='/about' element={<About />} />
-          <Route path='/product/:productId' element={<ProductDetail />} />
-          {/* chi tiết sản phẩm */}
-          <Route path='/register' element={<Register />} />
-          <Route path='/activate/:email/:activationCode' element={<ActivateAccount />} />
-          <Route path='/login' element={<Login />} />
-          <Route path='/test' element={<Test />} />
-          <Route path='/admin/add-product' element={<ProductForm_Admin />} />
-          <Route path='/introduce' element={<Introduce />} />
-          <Route path="/cart" element={<CartPage />} />
+            <Route path='/about' element={<About />} />
+            <Route path='/product/:productId' element={<ProductDetail />} />
+            <Route path='/activate/:email/:activationCode' element={<ActivateAccount />} />
+            <Route path='/test' element={<Test />} />
+            <Route path='/introduce' element={<Introduce />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/order-success" element={<OrderSuccessPage />} />
+            <Route path='/contact' element={<ContactPage />} />
+            <Route path="/payment-result" element={<PaymentResultPage />} />
+            <Route path="/my-orders" element={<MyOrdersPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/wishlist" element={<WishListPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          </Route>
 
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/order-success" element={<OrderSuccessPage />} />
-          <Route path='/contact' element={<ContactPage />} />
-
-
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-
-          <Route path="/payment-result" element={<PaymentResultPage />} />
-
-          <Route path="/my-orders" element={<MyOrdersPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-
-          <Route path="/wishlist" element={<WishListPage />} />
-
+          {/* Auth riêng */}
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+            <Route path='/register' element={<Register />} />
+          </Route>
 
           {/* Admin routes */}
           <Route path="/admin" element={<AdminLayoutWrapped />}>
@@ -87,12 +94,7 @@ function App() {
 
 
         </Routes>
-        <Footer />
-
       </BrowserRouter>
-
-
-
     </div>
   );
 }

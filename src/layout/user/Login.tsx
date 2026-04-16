@@ -59,65 +59,139 @@ const Login = () => {
     };
 
     return (
-        <div className="container">
-            <div className="form-signin" style={{ maxWidth: '400px', margin: 'auto', marginTop: '50px' }}>
-                <h1 className="h3 mb-3 fw-normal text-center">Sign In</h1>
+        <div className="register-wrapper">
+            <div className="register-card">
 
-                <div className="form-floating">
+                <h2 className="text-center mb-4">Đăng nhập</h2>
+
+                <div className="form-floating mb-3">
                     <input
                         type="text"
-                        className="form-control mb-2"
+                        className="form-control"
                         id="floatingInput"
                         placeholder="Username"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                     />
-                    <label htmlFor="floatingInput">Username</label>
+                    <label htmlFor="floatingInput">Tên đăng nhập</label>
                 </div>
 
-                <div className="form-floating">
+                <div className="form-floating mb-3 password-wrapper">
                     <input
                         type="password"
-                        className="form-control mb-2"
+                        className="form-control"
                         id="floatingPassword"
                         placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
-                    <label htmlFor="floatingPassword">Password</label>
+                    <label htmlFor="floatingPassword">Mật khẩu</label>
                 </div>
 
-                <div className="form-check text-start my-3">
-                    <input className="form-check-input" type="checkbox" value="remember-me" id="checkDefault" />
-                    <label className="form-check-label" htmlFor="checkDefault">
-                        Remember me
-                    </label>
-                </div>
-                <p style={{ textAlign: "center", fontSize: 13, marginTop: 12 }}>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                    <div className="form-check">
+                        <input className="form-check-input" type="checkbox" id="checkDefault" />
+                        <label className="form-check-label" htmlFor="checkDefault">
+                            Ghi nhớ
+                        </label>
+                    </div>
+
                     <span
-                        style={{ color: "#888", cursor: "pointer" }}
+                        className="link"
                         onClick={() => navigate("/forgot-password")}
                     >
                         Quên mật khẩu?
                     </span>
-                </p>
+                </div>
 
                 <button
-                    className="btn btn-primary w-100 py-2"
+                    className="btn btn-primary"
                     type="submit"
                     onClick={handleLogin}
                 >
-                    Sign in
+                    Đăng nhập
                 </button>
 
+                <div className="text-center mt-3">
+                    <span style={{ fontSize: 14 }}>
+                        Chưa có tài khoản?{" "}
+                        <span
+                            className="link strong"
+                            onClick={() => navigate("/register")}
+                        >
+                            Đăng ký
+                        </span>
+                    </span>
+                </div>
+
                 {error && (
-                    <div className={`mt-3 text-center ${error.includes('successful') ? 'text-success' : 'text-danger'}`}>
+                    <div className={`mt-3 text-center ${error.includes('successful') ? 'text-success' : 'text-error'}`}>
                         {error}
                     </div>
                 )}
 
-                <p className="mt-5 mb-3 text-body-secondary text-center">© 2026 ElaBan Furniture</p>
+                <p className="footer text-center mt-4">© 2026 ElaBan Furniture</p>
+
             </div>
+            <style>
+{`
+.register-wrapper {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #fff6f3, #ffffff);
+}
+
+.register-card {
+    width: 450px;
+    background: #fff;
+    padding: 30px;
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+
+/* giữ Bootstrap nhưng làm đẹp hơn */
+.form-control {
+    border-radius: 8px !important;
+    padding: 10px 12px;
+}
+
+.form-control:focus {
+    border-color: #ee4d2d !important;
+    box-shadow: 0 0 0 2px rgba(238,77,45,0.15) !important;
+}
+
+.link {
+    color: #ee4d2d;
+    cursor: pointer;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+.btn-primary {
+    width: 100%;
+    border-radius: 8px;
+    background-color: #ee4d2d;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #d8431f;
+}
+
+.text-error {
+    color: red;
+}
+
+.footer {
+    font-size: 12px;
+    color: #999;
+}
+`}
+</style>
         </div>
     );
 }
