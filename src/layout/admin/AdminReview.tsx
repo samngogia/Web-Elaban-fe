@@ -7,19 +7,34 @@ const authHeader = () => ({
 });
 
 const AdminReview: React.FC = () => {
-    const [reviews, setReviews]     = useState<any[]>([]);
+    const [reviews, setReviews] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [filter, setFilter]       = useState<"all" | "pending">("pending");
+    const [filter, setFilter] = useState<"all" | "pending">("pending");
 
     const fetchReviews = async () => {
         setIsLoading(true);
-        const url = filter === "pending"
-            ? `${API}/admin/reviews/pending`
-            : `${API}/admin/reviews`;
-        const res = await fetch(url, { headers: authHeader() });
-        const data = await res.json();
-        setReviews(Array.isArray(data) ? data : []);
-        setIsLoading(false);
+        try {
+            // 1. SỬA: Gọi đúng path "allReviews" bạn đã cấu hình trong Repository
+            // Lưu ý: Nếu backend có base-path là /api thì thêm vào đầu
+            const url = `${API}/reviews/search/allReviews`;
+
+            const res = await fetch(url, { headers: authHeader() });
+
+            if (!res.ok) throw new Error("Không thể lấy dữ liệu");
+
+            const data = await res.json();
+
+            // 2. SỬA: Spring Data REST trả về dữ liệu nằm trong _embedded.reviews
+            // Ta dùng toán tử ?. để tránh lỗi nếu dữ liệu trống
+            const actualReviews = data._embedded?.reviews || [];
+
+            setReviews(actualReviews);
+        } catch (error) {
+            console.error("Lỗi fetch admin reviews:", error);
+            setReviews([]); // Trả về mảng rỗng nếu lỗi
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => { fetchReviews(); }, [filter]);
@@ -40,16 +55,16 @@ const AdminReview: React.FC = () => {
     };
 
     const s: Record<string, React.CSSProperties> = {
-        header:    { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
-        card:      { background: "#fff", borderRadius: 12, border: "0.5px solid #e8e5e0", padding: 24 },
-        table:     { width: "100%", borderCollapse: "collapse" as const, fontSize: 13 },
-        th:        { textAlign: "left" as const, padding: "10px 12px", color: "#aaa", fontWeight: 600, fontSize: 11, letterSpacing: "0.06em", borderBottom: "0.5px solid #eee" },
-        td:        { padding: "12px", borderBottom: "0.5px solid #f5f5f5", verticalAlign: "middle" as const },
-        approveBtn:{ background: "#EAF3DE", color: "#27500A", border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", marginRight: 6 },
+        header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
+        card: { background: "#fff", borderRadius: 12, border: "0.5px solid #e8e5e0", padding: 24 },
+        table: { width: "100%", borderCollapse: "collapse" as const, fontSize: 13 },
+        th: { textAlign: "left" as const, padding: "10px 12px", color: "#aaa", fontWeight: 600, fontSize: 11, letterSpacing: "0.06em", borderBottom: "0.5px solid #eee" },
+        td: { padding: "12px", borderBottom: "0.5px solid #f5f5f5", verticalAlign: "middle" as const },
+        approveBtn: { background: "#EAF3DE", color: "#27500A", border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", marginRight: 6 },
         deleteBtn: { background: "none", border: "0.5px solid #ffcdd2", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", color: "#d32f2f" },
         filterBtn: { padding: "6px 14px", border: "0.5px solid #ddd", borderRadius: 20, fontSize: 12, cursor: "pointer", marginRight: 8, background: "#fff" },
         filterBtnActive: { background: "#1a1a1a", color: "#fff", border: "0.5px solid #1a1a1a" },
-        badge:     { padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 500 },
+        badge: { padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 500 },
     };
 
     return (
@@ -116,7 +131,7 @@ const AdminReview: React.FC = () => {
                                     </td>
                                     <td style={s.td}>
                                         <div>
-                                            {[1,2,3,4,5].map(s => (
+                                            {[1, 2, 3, 4, 5].map(s => (
                                                 <span key={s} style={{
                                                     color: s <= review.rating ? "#f5a623" : "#ddd",
                                                     fontSize: 14

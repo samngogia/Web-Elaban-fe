@@ -30,15 +30,27 @@ const ProductReview: React.FC<ProductReviewProps> = ({ productId }) => {
         } catch { return 0; }
     };
 
-    const fetchReviews = () => {
-        fetch(`http://localhost:8089/reviews/search/findByProduct_IdAndApprovedTrueOrderByCreatedDateDesc?productId=${productId}`)
-            .then(r => r.json())
-            .then(data => {
-                setReviewList(data._embedded?.reviews ?? []);
-                setIsLoading(false);
-            })
-            .catch(err => { setError(err.message); setIsLoading(false); });
+    const fetchReviews = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            // Đổi /api/reviews thành /reviews
+            const response = await fetch(
+                `http://localhost:8089/reviews/search/findByProduct_IdOrderByCreatedDateDesc?productId=${productId}`
+            );
+            const responseText = await response.text();
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!responseText.trim()) { setReviewList([]); return; }
+            const data = JSON.parse(responseText);
+            setReviewList(data._embedded?.reviews ?? []);
+        } catch (err: any) {
+            setError(err.message);
+            setReviewList([]);
+        } finally {
+            setIsLoading(false);
+        }
     };
+
 
     useEffect(() => { fetchReviews(); }, [productId]);
 
@@ -68,11 +80,11 @@ const ProductReview: React.FC<ProductReviewProps> = ({ productId }) => {
             });
             const text = await res.text();
             if (res.ok) {
-                setSubmitMsg("Đánh giá đã được gửi, chờ admin duyệt!");  // đổi message
+                setSubmitMsg("Đánh giá của bạn đã được đăng!");  // đổi message
                 setIsError(false);
                 setContent("");
                 setRating(5);
-                // KHÔNG gọi fetchReviews() vì review chưa được duyệt
+                fetchReviews(); // reload luôn
             } else {
                 setSubmitMsg(text);
                 setIsError(true);
