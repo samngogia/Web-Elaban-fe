@@ -30,7 +30,8 @@ const AdminLayout: React.FC = () => {
         { to: "/admin/orders",    label: "🛒 Đơn hàng" },
         { to: "/admin/categories",label: "🗂 Danh mục" },
         { to: "/admin/users",     label: "👥 Người dùng" },
-        { to: "/admin/reviews",   label: "💬 Đánh giá" }
+        { to: "/admin/reviews",   label: "💬 Đánh giá" },
+        { to: "/admin/vouchers", label: "🎟 Voucher" },
     ];
 
     return (

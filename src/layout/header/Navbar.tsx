@@ -237,6 +237,11 @@ const Navbar: React.FC<NavbarProps> = ({ searchKeyword, setSearchKeyword }) => {
                         Đơn hàng của tôi
                       </Link>
                     </li>
+                    <li>
+                      <Link className="dropdown-item py-2" to="/my-addresses">
+                        Địa chỉ của tôi
+                      </Link>
+                    </li>
                     <li><hr className="dropdown-divider" /></li>
                     <li>
                       <button

@@ -41,7 +41,36 @@ const CheckoutPage: React.FC = () => {
     const [email, setEmail] = useState("");
     const [note, setNote] = useState("");
 
+    const [voucherCode, setVoucherCode] = useState("");
+    const [voucherDiscount, setVoucherDiscount] = useState(0);
+    const [voucherMsg, setVoucherMsg] = useState("");
+    const [voucherError, setVoucherError] = useState(false);
+    const [appliedVoucher, setAppliedVoucher] = useState("");
 
+
+    const handleApplyVoucher = async () => {
+        if (!voucherCode.trim()) return;
+        try {
+            const res = await fetch(
+                `http://localhost:8089/api/voucher/apply?code=${voucherCode}&orderAmount=${subtotal}`,
+                { method: "POST" }
+            );
+            const text = await res.text();
+            if (res.ok) {
+                const data = JSON.parse(text);
+                setVoucherDiscount(data.discountAmount);
+                setAppliedVoucher(voucherCode.toUpperCase());
+                setVoucherMsg(`Áp dụng thành công! Giảm ${FormatNumber(data.discountAmount)}đ`);
+                setVoucherError(false);
+            } else {
+                setVoucherMsg(text);
+                setVoucherError(true);
+                setVoucherDiscount(0);
+            }
+        } catch {
+            setVoucherMsg("Lỗi kết nối!"); setVoucherError(true);
+        }
+    };
 
 
 
@@ -65,7 +94,7 @@ const CheckoutPage: React.FC = () => {
     const subtotal = cartItems.reduce(
         (sum: number, item: any) => sum + (item.product?.sellingPrice ?? 0) * item.quantity, 0
     );
-    const total = subtotal;
+    const total = subtotal - voucherDiscount;
 
     // Thêm state shippingAddress
     const [shippingAddress, setShippingAddress] = useState("");
@@ -158,138 +187,176 @@ const CheckoutPage: React.FC = () => {
 
 
     return (
-    <div className="container mt-5 mb-5" style={{ fontFamily: 'Arial, sans-serif' }}>
-        <div className="border-bottom mb-4 pb-2">
-            <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#333' }}>THANH TOÁN</h1>
-        </div>
-
-        {/* Bắt đầu hàng chính để chia 2 cột */}
-        <div className="row">
-            
-            {/* CỘT TRÁI: THÔNG TIN KHÁCH HÀNG (7 phần) */}
-            <div className="col-lg-7 col-md-12">
-                <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>THÔNG TIN THANH TOÁN</h3>
-                <div className="row">
-                    <div className="col-md-6 mb-3">
-                        <label className="form-label">Họ *</label>
-                        <input type="text" className="form-control"
-                            value={firstName}
-                            onChange={e => setFirstName(e.target.value)}
-                            required />
-                    </div>
-                    <div className="col-md-6 mb-3">
-                        <label className="form-label">Tên *</label>
-                        <input type="text" className="form-control"
-                            value={lastName}
-                            onChange={e => setLastName(e.target.value)}
-                            required />
-                    </div>
-                </div>
-                <div className="mb-3">
-                    <label className="form-label">Địa chỉ *</label>
-                    <input type="text" className="form-control"
-                        value={shippingAddress}
-                        onChange={e => setShippingAddress(e.target.value)}
-                        required />
-                </div>
-                <div className="mb-3">
-                    <label className="form-label">Số điện thoại *</label>
-                    <input type="text" className="form-control"
-                        value={phoneNumber}
-                        onChange={e => setPhoneNumber(e.target.value)}
-                        required />
-                </div>
-                <div className="mb-3">
-                    <label className="form-label">Email *</label>
-                    <input type="email" className="form-control"
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        required />
-                </div>
-                <div className="mb-3">
-                    <label className="form-label">Ghi chú (tùy chọn)</label>
-                    <textarea className="form-control" rows={3}
-                        value={note}
-                        onChange={e => setNote(e.target.value)} />
-                </div>
+        <div className="container mt-5 mb-5" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <div className="border-bottom mb-4 pb-2">
+                <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#333' }}>THANH TOÁN</h1>
             </div>
 
-            {/* CỘT PHẢI: ĐƠN HÀNG & THANH TOÁN (5 phần) */}
-            <div className="col-lg-5 col-md-12">
-                <div className="p-4" style={{ border: '2px solid #ddd', borderRadius: '4px', backgroundColor: '#fff' }}>
-                    <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>ĐƠN HÀNG CỦA BẠN</h3>
+            {/* Bắt đầu hàng chính để chia 2 cột */}
+            <div className="row">
 
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th style={{ fontSize: '14px' }}>SẢN PHẨM</th>
-                                <th className="text-end" style={{ fontSize: '14px' }}>TẠM TÍNH</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {cartItems.map((item: any) => (
-                                <tr key={item.id}>
-                                    <td style={{ fontSize: '14px', color: '#666' }}>
-                                        {item.product?.name} <strong style={{ color: '#000' }}>× {item.quantity}</strong>
-                                    </td>
-                                    <td className="text-end fw-bold">
-                                        {FormatNumber((item.product?.sellingPrice ?? 0) * item.quantity)}đ
+                {/* CỘT TRÁI: THÔNG TIN KHÁCH HÀNG (7 phần) */}
+                <div className="col-lg-7 col-md-12">
+                    <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>THÔNG TIN THANH TOÁN</h3>
+                    <div className="row">
+                        <div className="col-md-6 mb-3">
+                            <label className="form-label">Họ *</label>
+                            <input type="text" className="form-control"
+                                value={firstName}
+                                onChange={e => setFirstName(e.target.value)}
+                                required />
+                        </div>
+                        <div className="col-md-6 mb-3">
+                            <label className="form-label">Tên *</label>
+                            <input type="text" className="form-control"
+                                value={lastName}
+                                onChange={e => setLastName(e.target.value)}
+                                required />
+                        </div>
+                    </div>
+                    <div className="mb-3">
+                        <label className="form-label">Địa chỉ *</label>
+                        <input type="text" className="form-control"
+                            value={shippingAddress}
+                            onChange={e => setShippingAddress(e.target.value)}
+                            required />
+                    </div>
+                    <div className="mb-3">
+                        <label className="form-label">Số điện thoại *</label>
+                        <input type="text" className="form-control"
+                            value={phoneNumber}
+                            onChange={e => setPhoneNumber(e.target.value)}
+                            required />
+                    </div>
+                    <div className="mb-3">
+                        <label className="form-label">Email *</label>
+                        <input type="email" className="form-control"
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
+                            required />
+                    </div>
+                    <div className="mb-3">
+                        <label className="form-label">Ghi chú (tùy chọn)</label>
+                        <textarea className="form-control" rows={3}
+                            value={note}
+                            onChange={e => setNote(e.target.value)} />
+                    </div>
+                </div>
+
+                {/* CỘT PHẢI: ĐƠN HÀNG & THANH TOÁN (5 phần) */}
+                <div className="col-lg-5 col-md-12">
+                    <div className="p-4" style={{ border: '2px solid #ddd', borderRadius: '4px', backgroundColor: '#fff' }}>
+                        <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>ĐƠN HÀNG CỦA BẠN</h3>
+
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th style={{ fontSize: '14px' }}>SẢN PHẨM</th>
+                                    <th className="text-end" style={{ fontSize: '14px' }}>TẠM TÍNH</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {cartItems.map((item: any) => (
+                                    <tr key={item.id}>
+                                        <td style={{ fontSize: '14px', color: '#666' }}>
+                                            {item.product?.name} <strong style={{ color: '#000' }}>× {item.quantity}</strong>
+                                        </td>
+                                        <td className="text-end fw-bold">
+                                            {FormatNumber((item.product?.sellingPrice ?? 0) * item.quantity)}đ
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th style={{ fontSize: '15px' }}>Tạm tính</th>
+                                    <td className="text-end fw-bold">{FormatNumber(subtotal)}đ</td>
+                                </tr>
+                                {/* Voucher */}
+                                <tr>
+                                    <td colSpan={2} style={{ padding: "8px 0" }}>
+                                        <div style={{ display: "flex", gap: 8 }}>
+                                            <input
+                                                style={{ flex: 1, padding: "8px 12px", border: "0.5px solid #ddd", borderRadius: 8, fontSize: 13 }}
+                                                placeholder="Nhập mã giảm giá"
+                                                value={voucherCode}
+                                                onChange={e => setVoucherCode(e.target.value.toUpperCase())}
+                                                disabled={!!appliedVoucher}
+                                            />
+                                            {appliedVoucher ? (
+                                                <button
+                                                    style={{ padding: "8px 14px", background: "none", border: "0.5px solid #ddd", borderRadius: 8, fontSize: 12, cursor: "pointer", color: "#d32f2f" }}
+                                                    onClick={() => { setAppliedVoucher(""); setVoucherCode(""); setVoucherDiscount(0); setVoucherMsg(""); }}
+                                                >Hủy</button>
+                                            ) : (
+                                                <button
+                                                    style={{ padding: "8px 14px", background: "#1a1a1a", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, cursor: "pointer" }}
+                                                    onClick={handleApplyVoucher}
+                                                >Áp dụng</button>
+                                            )}
+                                        </div>
+                                        {voucherMsg && (
+                                            <div style={{ fontSize: 12, marginTop: 6, color: voucherError ? "#d32f2f" : "#27500A" }}>
+                                                {voucherMsg}
+                                            </div>
+                                        )}
                                     </td>
                                 </tr>
-                            ))}
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <th style={{ fontSize: '15px' }}>Tạm tính</th>
-                                <td className="text-end fw-bold">{FormatNumber(subtotal)}đ</td>
-                            </tr>
-                            <tr>
-                                <th style={{ fontSize: '18px' }}>TỔNG</th>
-                                <td className="text-end fw-bold" style={{ color: '#d0021b', fontSize: '20px' }}>
-                                    {FormatNumber(total)}đ
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-
-                    {/* PHƯƠNG THỨC THANH TOÁN */}
-                    <div className="mt-4 p-3" style={{ backgroundColor: '#f9f9f9', border: '1px solid #eee' }}>
-                        {paymentMethods.map((method) => (
-                            <div key={method.id} className="form-check mb-3">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="paymentMethod"
-                                    id={`payment-${method.id}`}
-                                    checked={selectedPayment === method.id}
-                                    onChange={() => setSelectedPayment(method.id)}
-                                />
-                                <label className="form-check-label fw-bold" htmlFor={`payment-${method.id}`} style={{ cursor: 'pointer' }}>
-                                    {method.name}
-                                </label>
-                                {selectedPayment === method.id && (
-                                    <div className="mt-2 p-2 bg-white small border rounded">
-                                        {method.description || "Thanh toán an toàn qua cổng thanh toán này."}
-                                    </div>
+                                {voucherDiscount > 0 && (
+                                    <tr>
+                                        <th style={{ fontSize: 13, color: "#27500A" }}>Giảm giá ({appliedVoucher})</th>
+                                        <td style={{ textAlign: "right", color: "#27500A", fontWeight: 500 }}>
+                                            -{FormatNumber(voucherDiscount)}đ
+                                        </td>
+                                    </tr>
                                 )}
-                            </div>
-                        ))}
+                                <tr>
+                                    <th style={{ fontSize: '18px' }}>TỔNG</th>
+                                    <td className="text-end fw-bold" style={{ color: '#d0021b', fontSize: '20px' }}>
+                                        {FormatNumber(total)}đ
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        {/* PHƯƠNG THỨC THANH TOÁN */}
+                        <div className="mt-4 p-3" style={{ backgroundColor: '#f9f9f9', border: '1px solid #eee' }}>
+                            {paymentMethods.map((method) => (
+                                <div key={method.id} className="form-check mb-3">
+                                    <input
+                                        className="form-check-input"
+                                        type="radio"
+                                        name="paymentMethod"
+                                        id={`payment-${method.id}`}
+                                        checked={selectedPayment === method.id}
+                                        onChange={() => setSelectedPayment(method.id)}
+                                    />
+                                    <label className="form-check-label fw-bold" htmlFor={`payment-${method.id}`} style={{ cursor: 'pointer' }}>
+                                        {method.name}
+                                    </label>
+                                    {selectedPayment === method.id && (
+                                        <div className="mt-2 p-2 bg-white small border rounded">
+                                            {method.description || "Thanh toán an toàn qua cổng thanh toán này."}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        <button
+                            className="btn btn-dark w-100 mt-4 py-3 fw-bold"
+                            style={{ backgroundColor: '#000', borderRadius: '0', fontSize: '16px' }}
+                            disabled={isLoading}
+                            onClick={handlePlaceOrder}
+                        >
+                            {isLoading ? "ĐANG XỬ LÝ..." : "ĐẶT HÀNG"}
+                        </button>
                     </div>
-
-                    <button
-                        className="btn btn-dark w-100 mt-4 py-3 fw-bold"
-                        style={{ backgroundColor: '#000', borderRadius: '0', fontSize: '16px' }}
-                        disabled={isLoading}
-                        onClick={handlePlaceOrder}
-                    >
-                        {isLoading ? "ĐANG XỬ LÝ..." : "ĐẶT HÀNG"}
-                    </button>
                 </div>
-            </div>
 
-        </div> {/* Kết thúc row chính */}
-    </div>
-);
+            </div> {/* Kết thúc row chính */}
+        </div>
+    );
 };
 
 export default CheckoutPage;

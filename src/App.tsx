@@ -32,6 +32,9 @@ import WishListPage from './layout/user/WishListPage';
 import ProfilePage from './layout/user/ProfilePage';
 import AuthLayout from './layout/AuthLayout';
 import MainLayout from './layout/MainLayout';
+import MyAddresses from './homepage/componets/MyAddresses';
+import AdminVoucher from './layout/admin/AdminVoucher';
+
 
 
 
@@ -74,6 +77,8 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/wishlist" element={<WishListPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/my-addresses" element={<MyAddresses />} />
+            <Route path="/vouchers" element={<AdminVoucher />} />
           </Route>
 
           {/* Auth riêng */}
@@ -90,6 +95,7 @@ function App() {
             <Route path="/admin/categories" element={<AdminCategory />} />
             <Route path="/admin/users" element={<AdminUser />} />
             <Route path="/admin/reviews" element={<AdminReview />} />
+            <Route path="/admin/vouchers" element={<AdminVoucher />} />
           </Route>
 
 
