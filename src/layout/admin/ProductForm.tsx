@@ -193,6 +193,6 @@ const ProductForm: React.FC<{}> = () => {
     );
 }
 
-const ProductForm_Admin = RequireAdmin(ProductForm);
 
-export default ProductForm_Admin;
+
+export default ProductForm;

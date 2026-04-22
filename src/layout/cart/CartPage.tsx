@@ -154,15 +154,15 @@ const CartPage: React.FC = () => {
     return (
         <div style={s.page}>
             <div style={s.container}>
-                <h1 style={s.heading}>Shopping Cart</h1>
-                <p style={s.subheading}>{cartItems.length} item{cartItems.length !== 1 ? "s" : ""} in your cart</p>
+                <h1 style={s.heading}>Giỏ hàng của bạn</h1>
+                <p style={s.subheading}>{cartItems.length} sản phẩm{cartItems.length !== 1 ? "s" : ""} trong giỏ hàng của bạn</p>
 
                 {cartItems.length === 0 ? (
                     <div style={s.empty}>
                         <div style={s.emptyIcon}>🛒</div>
-                        <p style={s.emptyText}>Your cart is empty</p>
+                        <p style={s.emptyText}>giỏ hàng đang trống</p>
                         <button style={s.shopBtn} onClick={() => navigate("/")}>
-                            Continue shopping
+                            Tiếp tục mua hàng
                         </button>
                     </div>
                 ) : (
@@ -172,10 +172,10 @@ const CartPage: React.FC = () => {
                             <table style={{ width: "100%", borderCollapse: "collapse" }}>
                                 <thead style={s.thead}>
                                     <tr>
-                                        <th style={s.th}>Product</th>
-                                        <th style={s.th}>Price</th>
-                                        <th style={s.th}>Quantity</th>
-                                        <th style={s.th}>Subtotal</th>
+                                        <th style={s.th}>Sản phẩm</th>
+                                        <th style={s.th}>Giá</th>
+                                        <th style={s.th}>Số lượng</th>
+                                        <th style={s.th}>Tổng</th>
                                         <th style={s.th}></th>
                                     </tr>
                                 </thead>
@@ -234,17 +234,17 @@ const CartPage: React.FC = () => {
 
                             <div style={s.actions}>
                                 <button style={s.clearBtn} onClick={handleClearCart}>
-                                    Clear cart
+                                    Xóa tất cả sản phẩm
                                 </button>
                                 <button style={s.clearBtn} onClick={() => navigate("/")}>
-                                    ← Continue shopping
+                                    ← Tiếp tục mua hàng
                                 </button>
                             </div>
                         </div>
 
                         {/* Right — Summary */}
                         <div style={s.summaryCard}>
-                            <div style={s.summaryTitle}>Order summary</div>
+                            <div style={s.summaryTitle}>Thanh toán</div>
 
                             {cartItems.map(item => (
                                 <div key={item.id} style={s.summaryRow}>
@@ -261,7 +261,7 @@ const CartPage: React.FC = () => {
                             ))}
 
                             <div style={s.summaryTotal}>
-                                <span>Total</span>
+                                <span>Tổng</span>
                                 <span>{FormatNumber(subtotal)}đ</span>
                             </div>
 
@@ -269,11 +269,11 @@ const CartPage: React.FC = () => {
                                 style={s.checkoutBtn}
                                 onClick={() => navigate("/checkout", { state: { cartItems } })}
                             >
-                                Proceed to checkout
+                                Tiếp tục thanh toán
                             </button>
 
                             <button style={s.continueBtn} onClick={() => navigate("/")}>
-                                Continue shopping
+                                Tiếp tục mua hàng
                             </button>
                         </div>
                     </div>

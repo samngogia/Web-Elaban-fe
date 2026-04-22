@@ -23,7 +23,7 @@ import AdminProduct from './layout/admin/AdminProduct';
 import AdminOrder from './layout/admin/AdminOrder';
 import AdminCategory from './layout/admin/AdminCategory';
 import AdminUser from './layout/admin/AdminUser';
-import AdminLayoutWrapped from './layout/admin/AdminLayoutWrapped';
+import AdminLayout from './layout/admin/AdminLayout';
 import { Chat } from 'react-bootstrap-icons';
 import Chatbot from './layout/utils/Chatbot';
 import MyOrdersPage from './layout/cart/MyOrdersPage';
@@ -34,8 +34,12 @@ import AuthLayout from './layout/AuthLayout';
 import MainLayout from './layout/MainLayout';
 import MyAddresses from './homepage/componets/MyAddresses';
 import AdminVoucher from './layout/admin/AdminVoucher';
+import BlogPage from './layout/blog/BlogPage';
+import BlogDetailPage from './layout/blog/BlogDetailPage';
+import AdminBlog from './layout/admin/AdminBlog';
 
-
+import RequireStaff from "./layout/admin/RequireStaff";
+import RequireAdmin from './layout/admin/RequireAdmin';
 
 
 
@@ -76,26 +80,34 @@ function App() {
             <Route path="/my-orders" element={<MyOrdersPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/wishlist" element={<WishListPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
             <Route path="/my-addresses" element={<MyAddresses />} />
             <Route path="/vouchers" element={<AdminVoucher />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<BlogDetailPage />} />
           </Route>
 
           {/* Auth riêng */}
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path='/register' element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           </Route>
 
           {/* Admin routes */}
-          <Route path="/admin" element={<AdminLayoutWrapped />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="/admin/products" element={<AdminProduct />} />
-            <Route path="/admin/orders" element={<AdminOrder />} />
-            <Route path="/admin/categories" element={<AdminCategory />} />
-            <Route path="/admin/users" element={<AdminUser />} />
-            <Route path="/admin/reviews" element={<AdminReview />} />
-            <Route path="/admin/vouchers" element={<AdminVoucher />} />
+          <Route path="/admin" element={<RequireStaff><AdminLayout /></RequireStaff>}>
+
+            {/* STAFF + ADMIN */}
+            <Route path="products" element={<AdminProduct />} />
+            <Route path="categories" element={<AdminCategory />} />
+            <Route path="orders" element={<AdminOrder />} />
+            <Route path="blog" element={<AdminBlog />} />
+            <Route path="reviews" element={<AdminReview />} />
+
+            {/* ADMIN only */}
+            <Route path="dashboard" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+            <Route path="users" element={<RequireAdmin><AdminUser /></RequireAdmin>} />
+            <Route path="vouchers" element={<RequireAdmin><AdminVoucher /></RequireAdmin>} />
           </Route>
 
 

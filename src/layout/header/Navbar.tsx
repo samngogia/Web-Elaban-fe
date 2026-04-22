@@ -48,7 +48,12 @@ const Navbar: React.FC<NavbarProps> = ({ searchKeyword, setSearchKeyword }) => {
     try {
       const decoded: any = jwtDecode(token);
       setIsLoggedIn(true);
-      setIsAdmin(decoded.role === "ADMIN");
+      const roles: string[] = decoded.roles ?? [];
+
+      const hasAdminAccess = roles.some(r =>
+        ["ADMIN", "ROLE_ADMIN", "STAFF", "ROLE_STAFF"].includes(r)
+      );
+      setIsAdmin(hasAdminAccess);
 
       const response = await fetch(`http://localhost:8089/cart/${decoded.userId}?t=${Date.now()}`, {
         headers: { Authorization: `Bearer ${token}`, "Cache-Control": "no-cache" }
@@ -127,18 +132,7 @@ const Navbar: React.FC<NavbarProps> = ({ searchKeyword, setSearchKeyword }) => {
                 </li>
               </ul>
             </li>
-
-            {/* Quy định - Giữ nguyên các mục của bạn */}
-            <li className="nav-item dropdown custom-dropdown">
-              <a href="#" className="nav-link dropdown-toggle px-3" role="button">Quy định bán hàng</a>
-              <ul className="dropdown-menu border-0 shadow-lg">
-                <li><a className="dropdown-item" href="#">Quy định 1</a></li>
-                <li><a className="dropdown-item" href="#">Quy định 2</a></li>
-                <li><a className="dropdown-item" href="#">Quy định 3</a></li>
-              </ul>
-            </li>
-
-            <li className="nav-item"><NavLink className="nav-link px-3" to="/news">Tin tức</NavLink></li>
+            <li className="nav-item"><NavLink className="nav-link px-3" to="/blog">Tin tức</NavLink></li>
             <li className="nav-item"><NavLink className="nav-link px-3" to="/contact">Liên hệ</NavLink></li>
           </ul>
 

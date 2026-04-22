@@ -1,13 +1,29 @@
 import React from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 const AdminLayout: React.FC = () => {
-    const navigate = useNavigate();
+    const navigate = useNavigate(); // Cần cái này để chuyển hướng sau khi logout
+    const token = localStorage.getItem("token");
+    const roles: string[] = (() => {
+        try {
+            const d: any = jwtDecode(token ?? "");
+            return d.roles ?? [];
+        } catch { return []; }
+    })();
 
+    const isAdmin = roles.some(r => ["ADMIN", "ROLE_ADMIN"].includes(r));
+    const isStaff = roles.some(r => ["STAFF", "ROLE_STAFF"].includes(r));
+// --- BỔ SUNG ĐOẠN NÀY ---
+   
+    
     const handleLogout = () => {
         localStorage.removeItem("token");
-        navigate("/login");
+        localStorage.removeItem("user"); // Xóa luôn user nếu có lưu
+        navigate("/login"); // Chuyển về trang login
     };
+    // ------------------------
+
 
     const s: Record<string, React.CSSProperties> = {
         wrapper: { display: "flex", minHeight: "100vh", fontFamily: "sans-serif" },
@@ -24,15 +40,22 @@ const AdminLayout: React.FC = () => {
         content: { padding: 32 },
     };
 
-    const navItems = [
-        { to: "/admin",           label: "📊 Thống kê",        end: true },
-        { to: "/admin/products",  label: "📦 Sản phẩm" },
-        { to: "/admin/orders",    label: "🛒 Đơn hàng" },
-        { to: "/admin/categories",label: "🗂 Danh mục" },
-        { to: "/admin/users",     label: "👥 Người dùng" },
-        { to: "/admin/reviews",   label: "💬 Đánh giá" },
-        { to: "/admin/vouchers", label: "🎟 Voucher" },
+    const allNavItems = [
+        // Chỉ ADMIN
+        { to: "/admin/dashboard", label: "📊 Thống kê", adminOnly: true, end: true },
+        { to: "/admin/users", label: "👥 Người dùng", adminOnly: true },
+        { to: "/admin/vouchers", label: "🎟 Voucher", adminOnly: true },
+        // STAFF + ADMIN
+        { to: "/admin/products", label: "📦 Sản phẩm", adminOnly: false },
+        { to: "/admin/categories", label: "🗂 Danh mục", adminOnly: false },
+        { to: "/admin/orders", label: "🛍 Đơn hàng", adminOnly: false },
+        { to: "/admin/blog", label: "📰 Tin tức", adminOnly: false },
+        { to: "/admin/reviews", label: "⭐ Đánh giá", adminOnly: false },
     ];
+
+    const navItems = allNavItems.filter(item =>
+        !item.adminOnly || isAdmin
+    );
 
     return (
         <div style={s.wrapper}>
