@@ -13,13 +13,13 @@ const EMPTY_FORM = {
 };
 
 const AdminVoucher: React.FC = () => {
-    const [vouchers, setVouchers]   = useState<any[]>([]);
-    const [showForm, setShowForm]   = useState(false);
-    const [editId, setEditId]       = useState<number | null>(null);
-    const [form, setForm]           = useState<any>(EMPTY_FORM);
+    const [vouchers, setVouchers] = useState<any[]>([]);
+    const [showForm, setShowForm] = useState(false);
+    const [editId, setEditId] = useState<number | null>(null);
+    const [form, setForm] = useState<any>(EMPTY_FORM);
     const [isLoading, setIsLoading] = useState(true);
-    const [msg, setMsg]             = useState("");
-    const [isError, setIsError]     = useState(false);
+    const [msg, setMsg] = useState("");
+    const [isError, setIsError] = useState(false);
 
     const fetchVouchers = async () => {
         setIsLoading(true);
@@ -78,21 +78,21 @@ const AdminVoucher: React.FC = () => {
     };
 
     const s: Record<string, React.CSSProperties> = {
-        header:     { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
-        addBtn:     { background: "#1a1a1a", color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", fontSize: 13, cursor: "pointer" },
-        card:       { background: "#fff", borderRadius: 12, border: "0.5px solid #e8e5e0", padding: 24 },
-        table:      { width: "100%", borderCollapse: "collapse" as const, fontSize: 13 },
-        th:         { textAlign: "left" as const, padding: "10px 12px", color: "#aaa", fontWeight: 600, fontSize: 11, letterSpacing: "0.06em", borderBottom: "0.5px solid #eee" },
-        td:         { padding: "12px", borderBottom: "0.5px solid #f5f5f5", verticalAlign: "middle" as const },
-        codeBadge:  { background: "#1a1a1a", color: "#fff", padding: "4px 10px", borderRadius: 6, fontSize: 12, fontWeight: 600, fontFamily: "monospace", letterSpacing: "0.05em" },
-        editBtn:    { background: "none", border: "0.5px solid #ddd", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", marginRight: 6 },
-        deleteBtn:  { background: "none", border: "0.5px solid #ffcdd2", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", color: "#d32f2f" },
-        overlay:    { position: "fixed" as const, inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" },
-        modal:      { background: "#fff", borderRadius: 16, padding: 32, width: 480, maxHeight: "90vh", overflowY: "auto" as const, position: "relative" as const },
-        label:      { display: "block", fontSize: 12, color: "#888", marginBottom: 6, fontWeight: 600 },
-        input:      { width: "100%", padding: "10px 12px", border: "0.5px solid #ddd", borderRadius: 8, fontSize: 13, marginBottom: 16, boxSizing: "border-box" as const },
-        grid2:      { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" },
-        badge:      { padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 500 },
+        header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
+        addBtn: { background: "#1a1a1a", color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", fontSize: 13, cursor: "pointer" },
+        card: { background: "#fff", borderRadius: 12, border: "0.5px solid #e8e5e0", padding: 24 },
+        table: { width: "100%", borderCollapse: "collapse" as const, fontSize: 13 },
+        th: { textAlign: "left" as const, padding: "10px 12px", color: "#aaa", fontWeight: 600, fontSize: 11, letterSpacing: "0.06em", borderBottom: "0.5px solid #eee" },
+        td: { padding: "12px", borderBottom: "0.5px solid #f5f5f5", verticalAlign: "middle" as const },
+        codeBadge: { background: "#1a1a1a", color: "#fff", padding: "4px 10px", borderRadius: 6, fontSize: 12, fontWeight: 600, fontFamily: "monospace", letterSpacing: "0.05em" },
+        editBtn: { background: "none", border: "0.5px solid #ddd", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", marginRight: 6 },
+        deleteBtn: { background: "none", border: "0.5px solid #ffcdd2", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", color: "#d32f2f" },
+        overlay: { position: "fixed" as const, inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" },
+        modal: { background: "#fff", borderRadius: 16, padding: 32, width: 480, maxHeight: "90vh", overflowY: "auto" as const, position: "relative" as const },
+        label: { display: "block", fontSize: 12, color: "#888", marginBottom: 6, fontWeight: 600 },
+        input: { width: "100%", padding: "10px 12px", border: "0.5px solid #ddd", borderRadius: 8, fontSize: 13, marginBottom: 16, boxSizing: "border-box" as const },
+        grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" },
+        badge: { padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 500 },
     };
 
     return (
@@ -103,7 +103,16 @@ const AdminVoucher: React.FC = () => {
             </div>
 
             <div style={s.card}>
-                {isLoading ? <p style={{ color: "#aaa" }}>Đang tải...</p> : (
+                {isLoading ? (
+                    <div className="d-flex flex-column justify-content-center align-items-center py-5" style={{ minHeight: '300px' }}>
+                        <div className="spinner-border text-secondary mb-3" style={{ width: '2.5rem', height: '2.5rem' }} role="status">
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                        <p className="text-muted" style={{ fontSize: '15px', fontWeight: 500 }}>
+                            Đang tải danh sách voucher...
+                        </p>
+                    </div>
+                ) : (
                     <table style={s.table}>
                         <thead>
                             <tr>

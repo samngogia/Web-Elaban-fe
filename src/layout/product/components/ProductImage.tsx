@@ -45,23 +45,43 @@ const ProductImage: React.FC<ProductImage> = (props) => {
     }
     if (isLoading) {
         return (
-            <div><h1>Đang tải dữ liệu sản phẩm...</h1></div>
+            <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+                <div className="spinner-border text-secondary mb-3" style={{ width: '3rem', height: '3rem' }} role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+                <h5 className="text-muted" style={{ fontWeight: 500 }}>Đang tải dữ liệu sản phẩm...</h5>
+            </div>
         );
     }
     // xóa div col-md-3 bên ngoài đi
     return (
         <div>
             <Carousel showArrows={true} showThumbs={false}>
-                {imageList.map((image, index) => (
-                    <div key={index}>
-                        <img
-                            src={image.url ?? ""}
-                            className="product-detail-img"
-                            alt={`Product image ${index + 1}`}
-                            style={{ width: '100%', height: '400px', objectFit: 'cover' }}
-                        />
-                    </div>
-                ))}
+                {imageList.map((image, index) => {
+                    // --- ÁP DỤNG LOGIC CHUẨN HOÁ URL CHO TỪNG ẢNH ---
+                    const rawFileName = image.url ?? ""; // (Hoặc image.data tùy vào API của bạn)
+                    let safeUrl = "/no-image.png";
+
+                    if (rawFileName && rawFileName !== "") {
+                        const actualName = rawFileName.split('/').pop();
+                        if (actualName) {
+                            const safeFileName = encodeURIComponent(decodeURIComponent(actualName));
+                            safeUrl = `http://localhost:8089/images/${safeFileName}`;
+                        }
+                    }
+                    // --------------------------------------------------
+
+                    return (
+                        <div key={index}>
+                            <img
+                                src={safeUrl}
+                                className="product-detail-img"
+                                alt={`Product image ${index + 1}`}
+                                style={{ width: '100%', height: '400px', objectFit: 'cover' }}
+                            />
+                        </div>
+                    );
+                })}
             </Carousel>
         </div>
     );

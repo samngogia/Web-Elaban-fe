@@ -94,9 +94,16 @@ const AdminReview: React.FC = () => {
                 </div>
 
                 {isLoading ? (
-                    <p style={{ color: "#aaa", fontSize: 13 }}>Đang tải...</p>
+                    <div className="d-flex flex-column justify-content-center align-items-center py-5" style={{ minHeight: '300px' }}>
+                        <div className="spinner-border text-secondary mb-3" style={{ width: '2.5rem', height: '2.5rem' }} role="status">
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                        <p className="text-muted" style={{ fontSize: '15px', fontWeight: 500 }}>
+                            Đang tải danh sách đánh giá...
+                        </p>
+                    </div>
                 ) : reviews.length === 0 ? (
-                    <p style={{ color: "#aaa", fontSize: 13, fontStyle: "italic" }}>
+                    <p style={{ color: "#aaa", fontSize: 13, fontStyle: "italic", textAlign: "center", padding: "40px 0" }}>
                         Không có đánh giá nào.
                     </p>
                 ) : (

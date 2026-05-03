@@ -22,6 +22,7 @@ interface Order {
     totalAmount: number;
     createdDate: string;
     note?: string;
+    paymentMethod?: string;
     orderDetails: OrderDetail[];
 }
 
@@ -34,6 +35,7 @@ const AdminOrder: React.FC = () => {
         setIsLoading(true);
         try {
             const data = await getAllOrders();
+            console.log("Dữ liệu đơn hàng đầu tiên:", data[0]); // Thêm dòng này
             setOrders(data);
         } catch (err) {
             console.error(err);
@@ -239,13 +241,21 @@ const AdminOrder: React.FC = () => {
                 </div>
 
                 {isLoading ? (
-                    <p style={{ color: "#aaa", fontSize: 13 }}>Đang tải...</p>
+                    <div className="d-flex flex-column justify-content-center align-items-center py-5" style={{ minHeight: '300px' }}>
+                        <div className="spinner-border text-secondary mb-3" style={{ width: '2.5rem', height: '2.5rem' }} role="status">
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                        <p className="text-muted" style={{ fontSize: '15px', fontWeight: 500 }}>
+                            Đang tải danh sách đơn hàng...
+                        </p>
+                    </div>
                 ) : (
                     <table style={s.table}>
                         <thead>
                             <tr>
                                 <th style={s.th}>MÃ ĐƠN</th>
                                 <th style={s.th}>KHÁCH HÀNG</th>
+                                <th style={s.th}>ĐỊA CHỈ GIAO HÀNG</th>
                                 <th style={s.th}>TỔNG TIỀN</th>
                                 <th style={s.th}>THANH TOÁN</th>
                                 <th style={s.th}>GIAO HÀNG</th>
@@ -260,27 +270,18 @@ const AdminOrder: React.FC = () => {
                                     <tr>
                                         <td style={s.td}>#{order.id}</td>
 
+                                        {/* 1. Cột Khách hàng (Tên + SĐT) */}
                                         <td style={s.td}>
-                                            <div style={{ fontWeight: 500 }}>
-                                                {order.fullName}
+                                            <div style={{ fontWeight: 500 }}>{order.fullName}</div>
+                                            <div style={{ fontSize: 12, color: "#555", marginTop: 4 }}>
+                                                📞 {order.phoneNumber}
                                             </div>
-                                            <div
-                                                style={{
-                                                    fontSize: 12,
-                                                    color: "#999",
-                                                    marginTop: 2,
-                                                }}
-                                            >
-                                                {order.phoneNumber}
-                                            </div>
-                                            <div
-                                                style={{
-                                                    fontSize: 12,
-                                                    color: "#999",
-                                                    marginTop: 2,
-                                                }}
-                                            >
-                                                {order.shippingAddress}
+                                        </td>
+
+                                        {/* 2. Cột Địa chỉ tách riêng */}
+                                        <td style={s.td}>
+                                            <div style={{ fontSize: 12, color: "#555", maxWidth: "200px", lineHeight: "1.4" }}>
+                                                📍 {order.shippingAddress}
                                             </div>
                                         </td>
 
@@ -289,6 +290,14 @@ const AdminOrder: React.FC = () => {
                                         </td>
 
                                         <td style={s.td}>
+
+                                            {/* Thêm đoạn này để hiện tên phương thức (VD: VNPay, Tiền mặt) */}
+                                            {order.paymentMethod && (
+                                                <div style={{ fontSize: 12, fontWeight: 500, color: "#444", marginBottom: 6 }}>
+                                                    💳 {order.paymentMethod}
+                                                </div>
+                                            )}
+
                                             <select
                                                 style={s.input}
                                                 value={order.paymentStatus}
@@ -364,7 +373,7 @@ const AdminOrder: React.FC = () => {
                                     {expandedId === order.id && (
                                         <tr>
                                             <td
-                                                colSpan={7}
+                                                colSpan={8}
                                                 style={{
                                                     ...s.td,
                                                     paddingTop: 0,

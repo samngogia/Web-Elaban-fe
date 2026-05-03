@@ -33,7 +33,19 @@ const PaymentResultPage: React.FC = () => {
         btn: { padding: "12px 32px", background: "#1a1a1a", color: "#fff", border: "none", borderRadius: 10, fontSize: 14, cursor: "pointer" },
     };
 
-    if (isSuccess === null) return <div style={s.page}><p>Đang xử lý...</p></div>;
+    if (isSuccess === null) {
+        return (
+            <div style={s.page}>
+                {/* Lớp bọc bên trong để căn giữa toàn bộ vòng xoay và chữ */}
+                <div className="d-flex flex-column justify-content-center align-items-center py-5" style={{ minHeight: '50vh' }}>
+                    <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }} role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <h5 className="text-muted" style={{ fontWeight: 500 }}>Đang xử lý...</h5>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div style={s.page}>

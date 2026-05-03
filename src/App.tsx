@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Navbar from './layout/header/Navbar';
 import Footer from './layout/header/Footer';
 import HomePage from './homepage/HomePage';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import About from './layout/about/about';
 import Test from './layout/user/Test';
 import ProductDetail from './layout/product/ProductDetail';
@@ -43,16 +43,40 @@ import RequireAdmin from './layout/admin/RequireAdmin';
 
 
 
+// 1. COMPONENT KIỂM TRA ĐIỀU KIỆN HIỂN THỊ CHATBOT
+const ConditionalChatbot = () => {
+  const location = useLocation();
+  const currentPath = location.pathname;
+  
+  // Danh sách các đường dẫn (route) muốn ẨN Chatbot
+  const hiddenRoutes = [
+    '/admin', 
+    '/login', 
+    '/register', 
+    '/forgot-password', 
+    '/activate'
+  ];
+
+  // Kiểm tra xem đường dẫn hiện tại có chứa bất kỳ từ khóa nào trong danh sách ẩn không
+  const isHidden = hiddenRoutes.some(route => currentPath.startsWith(route));
+
+  if (isHidden) {
+    return null; // Không render gì cả nếu lọt vào danh sách ẩn
+  }
+  
+  return <Chatbot />; // Các trang khác thì render Chatbot bình thường
+};
+
+
 function App() {
-  //Nó dùng để lưu và cập nhật từ khóa tìm kiếm mà người dùng nhập vào
   const [searchKeyword, setSearchKeyword] = useState('');
 
   return (
     <div className='App'>
-
       <BrowserRouter>
-        <Chatbot />
-
+        
+        {/* 2. THAY THẾ <Chatbot /> CŨ BẰNG COMPONENT MỚI NÀY */}
+        <ConditionalChatbot />
 
         <Routes>
           <Route
@@ -67,22 +91,40 @@ function App() {
             <Route path='/HomePage' element={<HomePage searchKeyword={searchKeyword} />} />
             <Route path='/category/:categoryId' element={<HomePage searchKeyword={searchKeyword} />} />
 
+
+
             <Route path='/about' element={<About />} />
+
             <Route path='/product/:productId' element={<ProductDetail />} />
+
             <Route path='/activate/:email/:activationCode' element={<ActivateAccount />} />
+
             <Route path='/test' element={<Test />} />
+
             <Route path='/introduce' element={<Introduce />} />
+
             <Route path="/cart" element={<CartPage />} />
+
             <Route path="/checkout" element={<CheckoutPage />} />
+
             <Route path="/order-success" element={<OrderSuccessPage />} />
+
             <Route path='/contact' element={<ContactPage />} />
+
             <Route path="/payment-result" element={<PaymentResultPage />} />
+
             <Route path="/my-orders" element={<MyOrdersPage />} />
+
             <Route path="/profile" element={<ProfilePage />} />
+
             <Route path="/wishlist" element={<WishListPage />} />
 
+
+
             <Route path="/my-addresses" element={<MyAddresses />} />
+
             <Route path="/vouchers" element={<AdminVoucher />} />
+
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/blog/:slug" element={<BlogDetailPage />} />
           </Route>
@@ -92,24 +134,21 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path='/register' element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/activate" element={<ActivateAccount />} />
           </Route>
 
           {/* Admin routes */}
           <Route path="/admin" element={<RequireStaff><AdminLayout /></RequireStaff>}>
-
-            {/* STAFF + ADMIN */}
             <Route path="products" element={<AdminProduct />} />
             <Route path="categories" element={<AdminCategory />} />
             <Route path="orders" element={<AdminOrder />} />
             <Route path="blog" element={<AdminBlog />} />
             <Route path="reviews" element={<AdminReview />} />
 
-            {/* ADMIN only */}
             <Route path="dashboard" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
             <Route path="users" element={<RequireAdmin><AdminUser /></RequireAdmin>} />
             <Route path="vouchers" element={<RequireAdmin><AdminVoucher /></RequireAdmin>} />
           </Route>
-
 
         </Routes>
       </BrowserRouter>
@@ -118,4 +157,3 @@ function App() {
 }
 
 export default App;
-

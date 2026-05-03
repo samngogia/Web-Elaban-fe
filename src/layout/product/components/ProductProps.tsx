@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import renderRating from "../../utils/StarRating";
 import FormatNumber from "../../utils/FormatNumber";
 import { addToCart } from "../../../api/CartAPI";
- 
+
 interface ProductPropsInterface {
     product: ProductModel;
 }
@@ -89,15 +89,33 @@ const ProductProps: React.FC<ProductPropsInterface> = (props) => {
     }
     if (isLoading) {
         return (
-            <div><h1>Đang tải dữ liệu sản phẩm...</h1></div>
+            <div className="col-md-3 mt-2">
+                <div className="card d-flex justify-content-center align-items-center" style={{ height: '380px', background: '#f8f9fa', border: '1px solid #eee' }}>
+                    <div className="spinner-grow text-secondary" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
         );
     }
-    // const duLieuAnh = danhproductAnh[0]?.duLieuAnh ?? doremonImg;
 
-    // const originalPrice = props.product.giaNiemYet ?? '0';
-    // const discountedPrice = props.product.giaBan ?? originalPrice;
+    // 1. Lấy chuỗi ảnh gốc từ API (có thể nó đang bị dính chữ /images/)
+    const rawFileName = imageList[0]?.url ?? imageList[0]?.data;
+    
+    let imageUrl = "/no-image.png"; 
 
-    const imageData = imageList[0]?.url ?? imageList[0]?.data ?? "/no-image.png";
+    if (rawFileName && rawFileName !== "") {
+        // 2. Tách chuỗi ra thành nhiều khúc bởi dấu '/', sau đó dùng hàm .pop() để bốc ĐÚNG phần tử cuối cùng (tên file thật)
+        const actualName = rawFileName.split('/').pop(); 
+        
+        // 3. Tự mình lắp lại link chuẩn 1 lần duy nhất (bọc thêm encodeURIComponent để chống lỗi khoảng trắng)
+        if (actualName) {
+            imageUrl = `http://localhost:8089/images/${encodeURIComponent(actualName)}`;
+        }
+    }
+    
+
+    
     return (
         <>
 
@@ -105,11 +123,7 @@ const ProductProps: React.FC<ProductPropsInterface> = (props) => {
                 <div className="card">
                     <Link to={`/product/${props.product.id}`}>
                         <img
-                            src={
-                                imageData && imageData !== ""
-                                    ? imageData
-                                    : "/no-image.png"
-                            }
+                            src={imageUrl}
                             className="card-img-top"
                             alt={props.product.name}
                             style={{ height: '200px', objectFit: 'cover' }}
@@ -187,7 +201,7 @@ const ProductProps: React.FC<ProductPropsInterface> = (props) => {
                             {/* Ảnh */}
                             <div style={{ flex: '0 0 280px' }}>
                                 <img
-                                    src={imageData !== "" ? imageData : "/no-image.png"}
+                                    src={imageUrl}
                                     alt={props.product.name}
                                     style={{ width: '100%', height: 280, objectFit: 'cover', borderRadius: 8 }}
                                 />

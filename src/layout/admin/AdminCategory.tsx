@@ -158,7 +158,14 @@ const AdminCategory: React.FC = () => {
                 </div>
 
                 {isLoading ? (
-                    <p style={{ color: "#aaa", fontSize: 13 }}>Đang tải...</p>
+                    <div className="d-flex flex-column justify-content-center align-items-center py-5" style={{ minHeight: '300px' }}>
+                        <div className="spinner-border text-secondary mb-3" style={{ width: '2.5rem', height: '2.5rem' }} role="status">
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                        <p className="text-muted" style={{ fontSize: '15px', fontWeight: 500 }}>
+                            Đang tải danh sách đơn hàng...
+                        </p>
+                    </div>
                 ) : (
                     <table style={s.table}>
                         <thead>

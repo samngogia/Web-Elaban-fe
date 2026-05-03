@@ -105,7 +105,21 @@ const ProductDetail: React.FC = () => {
                 await Promise.all(data.map(async (p: any) => {
                     try {
                         const imgs = await getFirstImageByProductId(p.id);
-                        imgMap[p.id] = imgs[0]?.url ?? "";
+                        
+                        // --- LOGIC XỬ LÝ ĐƯỜNG DẪN ẢNH CHUẨN ---
+                        const rawFileName = imgs[0]?.url ?? imgs[0]?.data;
+                        let imageUrl = "/no-image.png"; 
+
+                        if (rawFileName && rawFileName !== "") {
+                            const actualName = rawFileName.split('/').pop(); 
+                            if (actualName) {
+                                const safeFileName = encodeURIComponent(decodeURIComponent(actualName));
+                                imageUrl = `http://localhost:8089/images/${safeFileName}`;
+                            }
+                        }
+                        imgMap[p.id] = imageUrl;
+                        // ----------------------------------------
+                        
                     } catch { }
                 }));
                 setRecImages(imgMap);
@@ -276,10 +290,12 @@ const ProductDetail: React.FC = () => {
 
 
     if (isLoading) {
-
         return (
-            <div className="container mt-5">
-                <h2 className="text-center">Đang tải thông tin sản phẩm...</h2>
+            <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+                <div className="spinner-border text-secondary mb-3" style={{ width: '3rem', height: '3rem' }} role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+                <h5 className="text-muted" style={{ fontWeight: 500 }}>Đang tải dữ liệu sản phẩm...</h5>
             </div>
         );
     }

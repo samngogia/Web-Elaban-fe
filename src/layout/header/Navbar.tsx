@@ -18,6 +18,8 @@ const Navbar: React.FC<NavbarProps> = ({ searchKeyword, setSearchKeyword }) => {
   const [cartCount, setCartCount] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+
   // Trạng thái mở menu
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
@@ -33,9 +35,14 @@ const Navbar: React.FC<NavbarProps> = ({ searchKeyword, setSearchKeyword }) => {
   const onSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => setTempKeyword(e.target.value);
 
   const handleSearch = () => {
-    setSearchKeyword(tempKeyword.trim());
-  };
+    const keyword = tempKeyword.trim();
 
+    // 1. Cập nhật state searchKeyword trên App.tsx
+    setSearchKeyword(keyword);
+
+    // 2. Điều hướng người dùng về Trang chủ (/) để HomePage nhận keyword mới và hiển thị
+    navigate('/');
+  };
   const loadUserAndCart = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -47,6 +54,16 @@ const Navbar: React.FC<NavbarProps> = ({ searchKeyword, setSearchKeyword }) => {
 
     try {
       const decoded: any = jwtDecode(token);
+
+      // Thêm đoạn này vào bên trong try {} của hàm loadUserAndCart
+      const profileRes = await fetch(`http://localhost:8089/api/profile/${decoded.userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        setUserAvatar(profileData.avatar); // Lưu avatar dạng Base64 vào state
+      }
+
       setIsLoggedIn(true);
       const roles: string[] = decoded.roles ?? [];
 
@@ -201,7 +218,15 @@ const Navbar: React.FC<NavbarProps> = ({ searchKeyword, setSearchKeyword }) => {
                   className="bg-secondary rounded-circle d-flex align-items-center justify-content-center"
                   style={{ width: '36px', height: '36px' }}
                 >
-                  <Person size={22} />
+                  <div className="bg-secondary rounded-circle d-flex align-items-center justify-content-center overflow-hidden" style={{ width: '36px', height: '36px' }}>
+                    {userAvatar && (userAvatar.startsWith("http") || userAvatar.startsWith("data:")) ? (
+                      <img src={userAvatar} alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : userAvatar ? (
+                      <img src={`data:image/jpeg;base64,${userAvatar}`} alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <Person size={22} color="white" />
+                    )}
+                  </div>
                 </div>
               </button>
 

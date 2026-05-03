@@ -103,8 +103,11 @@ const WishListPage: React.FC = () => {
 
     if (isLoading) return (
         <div style={s.page}>
-            <div style={s.container}>
-                <p style={{ color: "#aaa", fontSize: 13 }}>Đang tải...</p>
+            {/* Thêm class d-flex và py-5 để vòng tròn nằm căn giữa thật đẹp */}
+            <div style={s.container} className="d-flex justify-content-center align-items-center py-5">
+                <div className="spinner-border text-secondary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
             </div>
         </div>
     );

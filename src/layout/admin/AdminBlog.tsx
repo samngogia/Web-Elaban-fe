@@ -6,6 +6,11 @@ const authHeader = () => ({
     "Content-Type": "application/json",
 });
 
+// MỚI THÊM: Header dành riêng cho việc upload file (không set Content-Type để trình duyệt tự sinh boundary)
+const authHeaderForUpload = () => ({
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+});
+
 const EMPTY_FORM = {
     title: "", summary: "", content: "", thumbnail: "",
     categoryId: "", author: "Admin", isPublished: false,
@@ -20,12 +25,14 @@ const AdminBlog: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [msg, setMsg] = useState("");
-    // Thêm state
+
+    // MỚI THÊM: State để chứa file ảnh tải lên từ máy và URL xem trước
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState("");
+
     const [viewComments, setViewComments] = useState<any[]>([]);
     const [commentPostTitle, setCommentPostTitle] = useState("");
     const [showComments, setShowComments] = useState(false);
-
-
 
     const fetchAll = async () => {
         setIsLoading(true);
@@ -40,10 +47,13 @@ const AdminBlog: React.FC = () => {
 
     useEffect(() => { fetchAll(); }, []);
 
+    // MỚI THÊM: Reset ảnh khi mở form thêm mới
     const openAdd = () => {
         setEditId(null); setForm(EMPTY_FORM); setMsg(""); setShowForm(true);
+        setImageFile(null); setPreviewUrl("");
     };
 
+    // MỚI THÊM: Hiển thị ảnh cũ khi mở form sửa
     const openEdit = (p: any) => {
         setEditId(p.id);
         setForm({
@@ -52,7 +62,18 @@ const AdminBlog: React.FC = () => {
             categoryId: p.categoryId ?? "", author: p.author,
             isPublished: p.isPublished,
         });
+        setImageFile(null);
+        setPreviewUrl(p.thumbnail ?? ""); // Nạp link ảnh cũ vào preview
         setMsg(""); setShowForm(true);
+    };
+
+    // MỚI THÊM: Hàm bắt sự kiện khi người dùng chọn file ảnh
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setImageFile(file);
+            setPreviewUrl(URL.createObjectURL(file)); // Tạo link ảo để xem trước ảnh
+        }
     };
 
     const handleSave = async () => {
@@ -60,15 +81,43 @@ const AdminBlog: React.FC = () => {
             setMsg("Vui lòng nhập tiêu đề và nội dung!"); return;
         }
         setIsSaving(true);
-        const url = editId ? `${API}/api/blog/admin/posts/${editId}` : `${API}/api/blog/admin/posts`;
-        const res = await fetch(url, {
-            method: editId ? "PUT" : "POST",
-            headers: authHeader(),
-            body: JSON.stringify({ ...form, categoryId: form.categoryId || null }),
-        });
-        setIsSaving(false);
-        if (res.ok) { setShowForm(false); fetchAll(); }
-        else { setMsg("Lỗi lưu bài viết!"); }
+
+        try {
+            const url = editId ? `${API}/api/blog/admin/posts/${editId}` : `${API}/api/blog/admin/posts`;
+            const res = await fetch(url, {
+                method: editId ? "PUT" : "POST",
+                headers: authHeader(),
+                body: JSON.stringify({ ...form, categoryId: form.categoryId || null }),
+            });
+
+            if (!res.ok) throw new Error("Lỗi lưu thông tin bài viết!");
+
+            // Lấy dữ liệu bài viết vừa lưu (để lấy ID mới nếu là thêm mới)
+            const savedPost = await res.json();
+
+            // MỚI THÊM: Logic upload ảnh nếu có file được chọn
+            if (imageFile) {
+                const postId = editId || savedPost.id;
+                const formData = new FormData();
+                formData.append("file", imageFile);
+
+                // LƯU Ý: Bạn cần tạo API endpoint này ở Backend Spring Boot (giống phần upload ảnh Product)
+                const imgRes = await fetch(`${API}/api/blog/admin/posts/${postId}/upload-thumbnail`, {
+                    method: "POST",
+                    headers: authHeaderForUpload(), // Không được set Content-Type là application/json
+                    body: formData
+                });
+
+                if (!imgRes.ok) throw new Error("Lưu bài viết thành công nhưng lỗi khi upload ảnh!");
+            }
+
+            setShowForm(false);
+            fetchAll();
+        } catch (error: any) {
+            setMsg(error.message);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleDelete = async (id: number) => {
@@ -100,7 +149,6 @@ const AdminBlog: React.FC = () => {
         handleViewComments(postSlug, title);
     };
 
-
     const s: Record<string, React.CSSProperties> = {
         header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
         addBtn: { background: "#1a1a1a", color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", fontSize: 13, cursor: "pointer" },
@@ -127,7 +175,16 @@ const AdminBlog: React.FC = () => {
             </div>
 
             <div style={s.card}>
-                {isLoading ? <p style={{ color: "#aaa" }}>Đang tải...</p> : (
+                {isLoading ? (
+                    <div className="d-flex flex-column justify-content-center align-items-center py-5" style={{ minHeight: '300px' }}>
+                        <div className="spinner-border text-secondary mb-3" style={{ width: '2.5rem', height: '2.5rem' }} role="status">
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                        <p className="text-muted" style={{ fontSize: '15px', fontWeight: 500 }}>
+                            Đang tải danh sách bài viết...
+                        </p>
+                    </div>
+                ) : (
                     <table style={s.table}>
                         <thead>
                             <tr>
@@ -219,12 +276,11 @@ const AdminBlog: React.FC = () => {
                             </div>
                         </div>
 
-                        <label style={s.label}>ẢNH THUMBNAIL (URL)</label>
-                        <input style={s.input} value={form.thumbnail}
-                            onChange={e => setForm({ ...form, thumbnail: e.target.value })}
-                            placeholder="https://..." />
-                        {form.thumbnail && (
-                            <img src={form.thumbnail} alt="thumbnail" style={s.thumbnail} />
+                        {/* MỚI THÊM: Input chọn ảnh từ thiết bị */}
+                        <label style={s.label}>ẢNH THUMBNAIL</label>
+                        <input style={s.input} type="file" accept="image/*" onChange={handleImageChange} />
+                        {previewUrl && (
+                            <img src={previewUrl} alt="thumbnail preview" style={s.thumbnail} />
                         )}
 
                         <label style={s.label}>TÓM TẮT</label>
@@ -250,15 +306,27 @@ const AdminBlog: React.FC = () => {
                                 style={{ background: "none", border: "0.5px solid #ddd", borderRadius: 8, padding: "10px 20px", fontSize: 13, cursor: "pointer" }}>
                                 Hủy
                             </button>
-                            <button onClick={handleSave} disabled={isSaving}
-                                style={{ background: "#1a1a1a", color: "#fff", border: "none", borderRadius: 8, padding: "10px 24px", fontSize: 13, cursor: "pointer" }}>
-                                {isSaving ? "Đang lưu..." : "Lưu bài viết"}
+                            <button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="d-flex justify-content-center align-items-center"
+                                style={{ background: "#1a1a1a", color: "#fff", border: "none", borderRadius: 8, padding: "10px 24px", fontSize: 13, cursor: "pointer" }}
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        Đang lưu...
+                                    </>
+                                ) : (
+                                    "Lưu bài viết"
+                                )}
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
+            {/* Các phần khác giữ nguyên (Modal Comments) */}
             {showComments && (
                 <>
                     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 999 }}
@@ -282,7 +350,7 @@ const AdminBlog: React.FC = () => {
                                     <p style={{ fontSize: 13, color: "#555", marginBottom: 8 }}>{c.content}</p>
                                     <button
                                         style={{ background: "none", border: "0.5px solid #ffcdd2", borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer", color: "#d32f2f" }}
-                                        onClick={() => handleDeleteComment(c.id, /* postSlug */ "", commentPostTitle)}
+                                        onClick={() => handleDeleteComment(c.id, "", commentPostTitle)}
                                     >
                                         Xóa
                                     </button>

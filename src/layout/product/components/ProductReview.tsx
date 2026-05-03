@@ -153,7 +153,14 @@ const ProductReview: React.FC<ProductReviewProps> = ({ productId }) => {
                     />
 
                     <button type="submit" style={s.submitBtn} disabled={isSubmitting}>
-                        {isSubmitting ? "Đang gửi..." : "Gửi đánh giá"}
+                        {isSubmitting ? (
+                            <>
+                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                Đang gửi...
+                            </>
+                        ) : (
+                            "Gửi đánh giá"
+                        )}
                     </button>
 
                     {submitMsg && (
@@ -170,7 +177,11 @@ const ProductReview: React.FC<ProductReviewProps> = ({ productId }) => {
 
             {/* Danh sách đánh giá */}
             {isLoading ? (
-                <p style={{ color: "#aaa", fontSize: 13 }}>Đang tải đánh giá...</p>
+                <div className="d-flex justify-content-center py-4">
+                    <div className="spinner-border text-secondary" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                </div>
             ) : error ? (
                 <p style={{ color: "#d32f2f", fontSize: 13 }}>{error}</p>
             ) : reviewList.length === 0 ? (

@@ -74,12 +74,12 @@ function Register() {
                 });
 
                 if (response.ok) {
-                    setNotification("Registration successful! Please check your email to activate your account.");
+                    navigate(`/activate?email=${encodeURIComponent(email)}`);
                 } else {
-                    setNotification("An error occurred during registration.");
+                    setNotification("Đã xảy ra lỗi trong quá trình đăng ký.");
                 }
             } catch (error) {
-                setNotification("An error occurred during registration.");
+                setNotification("Đã xảy ra lỗi trong quá trình đăng ký.");
             }
         }
     }
@@ -91,12 +91,12 @@ function Register() {
             const response = await fetch(url);
             const data = await response.text();
             if (data === "true") {
-                setErrorUsername("Username already exists!");
+                setErrorUsername("Tên người dùng đã tồn tại!");
                 return true;
             }
             return false;
         } catch (error) {
-            console.error("Error checking username: ", error);
+            console.error("Lỗi khi kiểm tra tên người dùng: ", error);
             return false;
         }
     }
@@ -114,12 +114,12 @@ function Register() {
             const response = await fetch(url);
             const data = await response.text();
             if (data === "true") {
-                setErrorEmail("Email already exists!");
+                setErrorEmail("Email đã tồn tại rồi!");
                 return true;
             }
             return false;
         } catch (error) {
-            console.error("Error checking email: ", error);
+            console.error("Lỗi khi kiểm tra email: ", error);
             return false;
         }
     }
@@ -134,7 +134,7 @@ function Register() {
     const checkPasswordStrength = (password: string) => {
         const passwordRegex = /^(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
         if (!passwordRegex.test(password)) {
-            setErrorPassword("Password must be at least 8 characters and include at least 1 special character (!@#$%^&*)");
+            setErrorPassword("Mật khẩu phải có ít nhất 8 ký tự và bao gồm ít nhất 1 ký tự đặc biệt (!@#$%^&*)");
             return true;
         } else {
             setErrorPassword("");
@@ -151,7 +151,7 @@ function Register() {
     // Check Confirm Password
     const checkConfirmPassword = (confirmPass: string) => {
         if (confirmPass !== password) {
-            setErrorConfirmPassword("Passwords do not match");
+            setErrorConfirmPassword("Mật khẩu không khớp");
             return true;
         } else {
             setErrorConfirmPassword("");

@@ -6,8 +6,6 @@ import {
     getPaymentMethods,
     PaymentMethodModel, placeOrder
 } from "../../api/CheckoutAPI";
-import { CartItemModel } from "../../models/CartModel";
-
 
 const CheckoutPage: React.FC = () => {
     const navigate = useNavigate();
@@ -15,7 +13,6 @@ const CheckoutPage: React.FC = () => {
     const cartItemsRef = React.useRef<any[]>(null);
 
     if (cartItemsRef.current === null) {
-        // Chỉ đọc 1 lần duy nhất
         if (location.state?.cartItems?.length > 0) {
             cartItemsRef.current = location.state.cartItems;
         } else {
@@ -28,10 +25,8 @@ const CheckoutPage: React.FC = () => {
             }
         }
     }
-    // Dùng cartItemsRef.current thay vì cartItems từ getCartItems()
     const cartItems: any[] = cartItemsRef.current ?? [];
 
-    // chỉ chạy 1 lần sau khi mount
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethodModel[]>([]);
     const [selectedPayment, setSelectedPayment] = useState<number>(0);
     const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +41,40 @@ const CheckoutPage: React.FC = () => {
     const [voucherMsg, setVoucherMsg] = useState("");
     const [voucherError, setVoucherError] = useState(false);
     const [appliedVoucher, setAppliedVoucher] = useState("");
+    const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+    const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
+    const [shippingAddress, setShippingAddress] = useState("");
 
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        fetch("http://localhost:8089/api/addresses", {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setSavedAddresses(data);
+                    const def = data.find((a: any) => a.isDefault);
+                    if (def) {
+                        setSelectedAddressId(def.id);
+                        setFirstName(def.fullName?.split(" ")[0] ?? "");
+                        setLastName(def.fullName?.split(" ").slice(1).join(" ") ?? "");
+                        setPhoneNumber(def.phone ?? "");
+                        setShippingAddress(`${def.addressLine}, ${def.ward}, ${def.district}, ${def.province}`);
+                    }
+                }
+            })
+            .catch((err) => { console.error("Error:", err); });
+    }, []);
+
+    const handleSelectAddress = (addr: any) => {
+        setSelectedAddressId(addr.id);
+        setFirstName(addr.fullName?.split(" ")[0] ?? "");
+        setLastName(addr.fullName?.split(" ").slice(1).join(" ") ?? "");
+        setPhoneNumber(addr.phone ?? "");
+        setShippingAddress(`${addr.addressLine}, ${addr.ward}, ${addr.district}, ${addr.province}`);
+    };
 
     const handleApplyVoucher = async () => {
         if (!voucherCode.trim()) return;
@@ -72,9 +100,6 @@ const CheckoutPage: React.FC = () => {
         }
     };
 
-
-
-    // Lấy thông tin người dùng (giả định)
     const getUserId = (): number => {
         const token = localStorage.getItem("token");
         if (!token) return 0;
@@ -96,48 +121,7 @@ const CheckoutPage: React.FC = () => {
     );
     const total = subtotal - voucherDiscount;
 
-    // Thêm state shippingAddress
-    const [shippingAddress, setShippingAddress] = useState("");
-    // const handlePlaceOrder = async () => {
-    //     setIsLoading(true);
-    //     try {
-    //         // 1. Tạo order trước
-    //         const orderResponse = await placeOrder({
-    //             userId: getUserId(),
-    //             shippingAddress,
-    //             billingAddress: shippingAddress,
-    //             paymentMethodId: selectedPayment,
-    //             shippingMethodId: 1,
-    //             items: cartItems.map((item: any) => ({
-    //                 productId: item.product?.id ?? 0,
-    //                 quantity: item.quantity,
-    //                 price: item.product?.sellingPrice ?? 0,
-    //             }))
-    //         });
-
-    //         // 2. Nếu chọn VNPay thì redirect
-    //         const token = localStorage.getItem("token");
-    //         const res = await fetch(
-    //             `http://localhost:8089/vnpay/create-payment?orderId=${orderResponse.orderId}`,
-    //             {
-    //                 method: "POST",
-    //                 headers: { Authorization: `Bearer ${token}` }
-    //             }
-    //         );
-    //         const data = await res.json();
-    //         window.location.href = data.paymentUrl; // redirect sang VNPay
-
-    //     } catch (err: any) {
-    //         alert(err.message);
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // };
-
-
-
     const handlePlaceOrder = async () => {
-        // Validate
         if (!firstName || !lastName) {
             alert("Vui lòng nhập họ tên!"); return;
         }
@@ -153,6 +137,10 @@ const CheckoutPage: React.FC = () => {
 
         setIsLoading(true);
         try {
+            // MỚI THÊM: Tìm object phương thức thanh toán đang được chọn để check tên
+            const selectedMethodObj = paymentMethods.find(m => m.id === selectedPayment);
+            const methodName = selectedMethodObj?.name?.toLowerCase() || "";
+
             const orderResponse = await placeOrder({
                 userId: getUserId(),
                 fullName: `${firstName} ${lastName}`,
@@ -169,14 +157,26 @@ const CheckoutPage: React.FC = () => {
                 }))
             });
 
-            // Redirect sang VNPay
-            const token = localStorage.getItem("token");
-            const res = await fetch(
-                `http://localhost:8089/vnpay/create-payment?orderId=${orderResponse.orderId}`,
-                { method: "POST", headers: { Authorization: `Bearer ${token}` } }
-            );
-            const data = await res.json();
-            window.location.href = data.paymentUrl;
+            // MỚI THÊM: Phân luồng xử lý tùy theo phương thức thanh toán
+            if (methodName.includes("cod") || methodName.includes("tiền mặt")) {
+                // Nếu là COD -> Không gọi VNPAY, báo thành công và chuyển về trang Đơn hàng
+                alert("Đặt hàng thành công! Vui lòng kiểm tra email xác nhận.");
+                navigate("/my-orders");
+            } else {
+                // Nếu là VNPAY -> Gọi API lấy link và Redirect
+                const token = localStorage.getItem("token");
+                const res = await fetch(
+                    `http://localhost:8089/vnpay/create-payment?orderId=${orderResponse.orderId}`,
+                    { method: "POST", headers: { Authorization: `Bearer ${token}` } }
+                );
+                const data = await res.json();
+
+                if (data.paymentUrl) {
+                    window.location.href = data.paymentUrl;
+                } else {
+                    alert("Có lỗi xảy ra khi tạo link thanh toán VNPAY.");
+                }
+            }
 
         } catch (err: any) {
             alert(err.message);
@@ -185,19 +185,72 @@ const CheckoutPage: React.FC = () => {
         }
     };
 
-
     return (
         <div className="container mt-5 mb-5" style={{ fontFamily: 'Arial, sans-serif' }}>
             <div className="border-bottom mb-4 pb-2">
                 <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#333' }}>THANH TOÁN</h1>
             </div>
 
-            {/* Bắt đầu hàng chính để chia 2 cột */}
             <div className="row">
-
-                {/* CỘT TRÁI: THÔNG TIN KHÁCH HÀNG (7 phần) */}
+                {/* CỘT TRÁI */}
                 <div className="col-lg-7 col-md-12">
                     <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>THÔNG TIN THANH TOÁN</h3>
+
+                    {savedAddresses.length > 0 && (
+                        <div style={{ marginBottom: 24, padding: 16, background: "#f8f7f4", borderRadius: 10, border: "0.5px solid #e8e5e0" }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "#888", letterSpacing: "0.05em", marginBottom: 12 }}>
+                                ĐỊA CHỈ ĐÃ LƯU
+                            </div>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                {savedAddresses.map((addr: any) => (
+                                    <div
+                                        key={addr.id}
+                                        onClick={() => handleSelectAddress(addr)}
+                                        style={{
+                                            padding: "12px 16px",
+                                            borderRadius: 8,
+                                            border: `1.5px solid ${selectedAddressId === addr.id ? "#1a1a1a" : "#e8e5e0"}`,
+                                            background: selectedAddressId === addr.id ? "#f0ede8" : "#fff",
+                                            cursor: "pointer",
+                                            transition: "all 0.15s",
+                                        }}
+                                    >
+                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                            <div>
+                                                <span style={{ fontSize: 13, fontWeight: 500 }}>{addr.fullName}</span>
+                                                <span style={{ fontSize: 12, color: "#888", marginLeft: 8 }}>{addr.phone}</span>
+                                                {addr.isDefault && (
+                                                    <span style={{ marginLeft: 8, background: "#EAF3DE", color: "#27500A", padding: "2px 8px", borderRadius: 10, fontSize: 11, fontWeight: 500 }}>
+                                                        Mặc định
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <span style={{ fontSize: 12 }}>
+                                                {addr.addressType === "HOME" ? "🏠" : "🏢"}
+                                            </span>
+                                        </div>
+                                        <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>
+                                            {addr.addressLine}, {addr.ward}, {addr.district}, {addr.province}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div style={{ marginTop: 10, fontSize: 12, color: "#888" }}>
+                                Hoặc{" "}
+                                <span
+                                    style={{ color: "#1a1a1a", cursor: "pointer", textDecoration: "underline" }}
+                                    onClick={() => {
+                                        setSelectedAddressId(null);
+                                        setFirstName(""); setLastName("");
+                                        setPhoneNumber(""); setShippingAddress("");
+                                    }}
+                                >
+                                    nhập địa chỉ mới
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="row">
                         <div className="col-md-6 mb-3">
                             <label className="form-label">Họ *</label>
@@ -243,7 +296,7 @@ const CheckoutPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* CỘT PHẢI: ĐƠN HÀNG & THANH TOÁN (5 phần) */}
+                {/* CỘT PHẢI */}
                 <div className="col-lg-5 col-md-12">
                     <div className="p-4" style={{ border: '2px solid #ddd', borderRadius: '4px', backgroundColor: '#fff' }}>
                         <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>ĐƠN HÀNG CỦA BẠN</h3>
@@ -272,7 +325,6 @@ const CheckoutPage: React.FC = () => {
                                     <th style={{ fontSize: '15px' }}>Tạm tính</th>
                                     <td className="text-end fw-bold">{FormatNumber(subtotal)}đ</td>
                                 </tr>
-                                {/* Voucher */}
                                 <tr>
                                     <td colSpan={2} style={{ padding: "8px 0" }}>
                                         <div style={{ display: "flex", gap: 8 }}>
@@ -319,7 +371,6 @@ const CheckoutPage: React.FC = () => {
                             </tfoot>
                         </table>
 
-                        {/* PHƯƠNG THỨC THANH TOÁN */}
                         <div className="mt-4 p-3" style={{ backgroundColor: '#f9f9f9', border: '1px solid #eee' }}>
                             {paymentMethods.map((method) => (
                                 <div key={method.id} className="form-check mb-3">
@@ -349,12 +400,19 @@ const CheckoutPage: React.FC = () => {
                             disabled={isLoading}
                             onClick={handlePlaceOrder}
                         >
-                            {isLoading ? "ĐANG XỬ LÝ..." : "ĐẶT HÀNG"}
+                            {isLoading ? (
+                                <>
+                                    {/* Vòng xoay sẽ tự động lấy màu trắng đồng bộ với chữ nhờ class btn-dark */}
+                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    ĐANG XỬ LÝ...
+                                </>
+                            ) : (
+                                "ĐẶT HÀNG"
+                            )}
                         </button>
                     </div>
                 </div>
-
-            </div> {/* Kết thúc row chính */}
+            </div>
         </div>
     );
 };

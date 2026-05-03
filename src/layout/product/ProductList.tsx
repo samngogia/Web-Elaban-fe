@@ -84,7 +84,16 @@ const ProductList = ({ searchKeyword, categoryId }: ProductListProps) => {
         activeBadge: { background: "#FAEEDA", color: "#633806", padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 500 },
     };
 
-    if (loading) return <div className="container mt-5"><h4 className="text-center">Đang tải sản phẩm...</h4></div>;
+    if (loading) {
+        return (
+            <div className="container d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+                <div className="spinner-border text-dark mb-3" style={{ width: '3rem', height: '3rem' }} role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+                <h5 className="text-muted" style={{ fontWeight: 500 }}>Đang tải danh sách sản phẩm...</h5>
+            </div>
+        );
+    }
     if (error) return <div className="container mt-5"><h4 className="text-center text-danger">Lỗi: {error}</h4></div>;
 
     return (

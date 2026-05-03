@@ -3,14 +3,14 @@ import { useNavigate } from "react-router-dom";
 
 const ForgotPasswordPage: React.FC = () => {
     const navigate = useNavigate();
-    const [step, setStep]             = useState<1 | 2>(1);
-    const [email, setEmail]           = useState("");
-    const [otp, setOtp]               = useState("");
+    const [step, setStep] = useState<1 | 2>(1);
+    const [email, setEmail] = useState("");
+    const [otp, setOtp] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [message, setMessage]       = useState("");
-    const [isError, setIsError]       = useState(false);
-    const [isLoading, setIsLoading]   = useState(false);
+    const [message, setMessage] = useState("");
+    const [isError, setIsError] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSendOtp = async () => {
         if (!email) return;
@@ -109,11 +109,19 @@ const ForgotPasswordPage: React.FC = () => {
                         />
 
                         <button
+                            className="d-flex justify-content-center align-items-center"
                             style={{ ...s.btn, ...(isLoading ? s.btnDisabled : {}) }}
                             disabled={isLoading || !email}
                             onClick={handleSendOtp}
                         >
-                            {isLoading ? "Đang gửi..." : "Gửi mã OTP"}
+                            {isLoading ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    Đang gửi...
+                                </>
+                            ) : (
+                                "Gửi mã OTP"
+                            )}
                         </button>
                     </>
                 ) : (
@@ -150,11 +158,19 @@ const ForgotPasswordPage: React.FC = () => {
                         />
 
                         <button
+                            className="d-flex justify-content-center align-items-center"
                             style={{ ...s.btn, ...(isLoading ? s.btnDisabled : {}) }}
                             disabled={isLoading || !otp || !newPassword || !confirmPassword}
                             onClick={handleResetPassword}
                         >
-                            {isLoading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
+                            {isLoading ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    Đang xử lý...
+                                </>
+                            ) : (
+                                "Đặt lại mật khẩu"
+                            )}
                         </button>
 
                         <span style={s.backLink} onClick={() => setStep(1)}>

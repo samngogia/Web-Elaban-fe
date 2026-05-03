@@ -76,7 +76,18 @@ const BlogDetailPage: React.FC = () => {
     };
 
     if (isLoading) return (
-        <div style={s.page}><div style={s.container}><p style={{ color: "#aaa" }}>Đang tải...</p></div></div>
+        <div style={s.page}>
+            <div style={s.container}>
+                <div className="d-flex flex-column justify-content-center align-items-center py-5" style={{ minHeight: '300px' }}>
+                    <div className="spinner-border text-secondary mb-3" style={{ width: '2.5rem', height: '2.5rem' }} role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="text-muted" style={{ fontSize: '15px', fontWeight: 500 }}>
+                        Đang tải nội dung...
+                    </p>
+                </div>
+            </div>
+        </div>
     );
 
     if (!post) return (
@@ -125,8 +136,16 @@ const BlogDetailPage: React.FC = () => {
                                 onClick={handlePostComment}
                                 disabled={isPosting}
                                 style={{ marginLeft: "auto", background: "#1a1a1a", color: "#fff", border: "none", borderRadius: 8, padding: "8px 20px", fontSize: 13, cursor: "pointer" }}
+                                className="d-flex align-items-center"
                             >
-                                {isPosting ? "Đang gửi..." : "Gửi bình luận"}
+                                {isPosting ? (
+                                    <>
+                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        Đang gửi...
+                                    </>
+                                ) : (
+                                    "Gửi bình luận"
+                                )}
                             </button>
                         </div>
                     </div>

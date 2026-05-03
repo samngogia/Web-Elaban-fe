@@ -175,7 +175,14 @@ const MyAddresses: React.FC = () => {
         </div>
 
         {loading ? (
-          <p style={{ color: '#aaa', fontSize: 13 }}>Đang tải...</p>
+            <div className="d-flex flex-column justify-content-center align-items-center py-5" style={{ minHeight: '250px' }}>
+                <div className="spinner-border text-secondary mb-3" style={{ width: '2.5rem', height: '2.5rem' }} role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+                <p className="text-muted" style={{ fontSize: '15px', fontWeight: 500 }}>
+                    Đang tải danh sách địa chỉ...
+                </p>
+            </div>
         ) : addresses.length === 0 ? (
           <div style={s.empty}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>📍</div>
@@ -343,8 +350,20 @@ const MyAddresses: React.FC = () => {
 
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button style={s.cancelBtn} onClick={() => setShowForm(false)}>Hủy</button>
-              <button style={s.saveBtn} disabled={isSaving} onClick={handleSave}>
-                {isSaving ? 'Đang lưu...' : 'Lưu địa chỉ'}
+              <button
+                className="d-flex justify-content-center align-items-center"
+                style={s.saveBtn}
+                disabled={isSaving}
+                onClick={handleSave}
+              >
+                {isSaving ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Đang lưu...
+                  </>
+                ) : (
+                  'Lưu địa chỉ'
+                )}
               </button>
             </div>
           </div>

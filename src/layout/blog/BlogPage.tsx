@@ -4,9 +4,9 @@ import { Link, useSearchParams } from "react-router-dom";
 const API = "http://localhost:8089";
 
 const BlogPage: React.FC = () => {
-    const [posts, setPosts]           = useState<any[]>([]);
+    const [posts, setPosts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
-    const [isLoading, setIsLoading]   = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchParams, setSearchParams] = useSearchParams();
     const selectedCat = searchParams.get("category");
 
@@ -22,23 +22,23 @@ const BlogPage: React.FC = () => {
     }, [selectedCat]);
 
     const s: Record<string, React.CSSProperties> = {
-        page:      { minHeight: "100vh", background: "#f8f7f4", padding: "40px 0", fontFamily: "sans-serif" },
+        page: { minHeight: "100vh", background: "#f8f7f4", padding: "40px 0", fontFamily: "sans-serif" },
         container: { maxWidth: 1100, margin: "0 auto", padding: "0 20px" },
-        layout:    { display: "grid", gridTemplateColumns: "1fr 280px", gap: 32, alignItems: "start" },
-        heading:   { fontSize: 28, fontWeight: 400, marginBottom: 8, color: "#1a1a1a" },
-        sub:       { fontSize: 13, color: "#aaa", marginBottom: 32 },
-        grid:      { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 },
-        card:      { background: "#fff", borderRadius: 12, border: "0.5px solid #e8e5e0", overflow: "hidden", transition: "box-shadow 0.2s" },
-        img:       { width: "100%", height: 200, objectFit: "cover" as const, background: "#f0ede8" },
-        body:      { padding: 20 },
-        catBadge:  { display: "inline-block", background: "#f0ede8", color: "#666", padding: "3px 10px", borderRadius: 12, fontSize: 11, marginBottom: 10 },
-        title:     { fontSize: 15, fontWeight: 500, color: "#1a1a1a", marginBottom: 8, lineHeight: 1.4 },
-        summary:   { fontSize: 13, color: "#888", lineHeight: 1.6, marginBottom: 12, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties,
-        meta:      { fontSize: 11, color: "#aaa", display: "flex", justifyContent: "space-between" },
-        readMore:  { fontSize: 12, color: "#1a1a1a", textDecoration: "none", fontWeight: 500 },
-        sidebar:   { background: "#fff", borderRadius: 12, border: "0.5px solid #e8e5e0", padding: 24, position: "sticky" as const, top: 20 },
+        layout: { display: "grid", gridTemplateColumns: "1fr 280px", gap: 32, alignItems: "start" },
+        heading: { fontSize: 28, fontWeight: 400, marginBottom: 8, color: "#1a1a1a" },
+        sub: { fontSize: 13, color: "#aaa", marginBottom: 32 },
+        grid: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 },
+        card: { background: "#fff", borderRadius: 12, border: "0.5px solid #e8e5e0", overflow: "hidden", transition: "box-shadow 0.2s" },
+        img: { width: "100%", height: 200, objectFit: "cover" as const, background: "#f0ede8" },
+        body: { padding: 20 },
+        catBadge: { display: "inline-block", background: "#f0ede8", color: "#666", padding: "3px 10px", borderRadius: 12, fontSize: 11, marginBottom: 10 },
+        title: { fontSize: 15, fontWeight: 500, color: "#1a1a1a", marginBottom: 8, lineHeight: 1.4 },
+        summary: { fontSize: 13, color: "#888", lineHeight: 1.6, marginBottom: 12, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties,
+        meta: { fontSize: 11, color: "#aaa", display: "flex", justifyContent: "space-between" },
+        readMore: { fontSize: 12, color: "#1a1a1a", textDecoration: "none", fontWeight: 500 },
+        sidebar: { background: "#fff", borderRadius: 12, border: "0.5px solid #e8e5e0", padding: 24, position: "sticky" as const, top: 20 },
         sideTitle: { fontSize: 13, fontWeight: 600, letterSpacing: "0.06em", color: "#aaa", marginBottom: 16 },
-        catItem:   { display: "block", padding: "8px 0", fontSize: 13, color: "#555", textDecoration: "none", borderBottom: "0.5px solid #f5f5f5", cursor: "pointer" },
+        catItem: { display: "block", padding: "8px 0", fontSize: 13, color: "#555", textDecoration: "none", borderBottom: "0.5px solid #f5f5f5", cursor: "pointer" },
         catActive: { color: "#1a1a1a", fontWeight: 500 },
     };
 
@@ -52,9 +52,16 @@ const BlogPage: React.FC = () => {
                     {/* Danh sách bài viết */}
                     <div>
                         {isLoading ? (
-                            <p style={{ color: "#aaa" }}>Đang tải...</p>
+                            <div className="d-flex flex-column justify-content-center align-items-center py-5" style={{ minHeight: '300px' }}>
+                                <div className="spinner-border text-secondary mb-3" style={{ width: '2.5rem', height: '2.5rem' }} role="status">
+                                    <span className="visually-hidden">Loading...</span>
+                                </div>
+                                <p className="text-muted" style={{ fontSize: '15px', fontWeight: 500 }}>
+                                    Đang tải bài viết...
+                                </p>
+                            </div>
                         ) : posts.length === 0 ? (
-                            <p style={{ color: "#aaa", fontStyle: "italic" }}>Chưa có bài viết nào.</p>
+                            <p style={{ color: "#aaa", fontStyle: "italic", textAlign: "center", padding: "40px 0" }}>Chưa có bài viết nào.</p>
                         ) : (
                             <div style={s.grid}>
                                 {posts.map((post: any) => (

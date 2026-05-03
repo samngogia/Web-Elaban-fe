@@ -110,23 +110,23 @@ const ProfilePage: React.FC = () => {
     };
 
     const s: Record<string, React.CSSProperties> = {
-        page:       { minHeight: "100vh", background: "#f8f7f4", padding: "40px 0", fontFamily: "sans-serif" },
-        container:  { maxWidth: 700, margin: "0 auto", padding: "0 20px" },
-        heading:    { fontSize: 24, fontWeight: 400, marginBottom: 24, color: "#1a1a1a" },
-        card:       { background: "#fff", borderRadius: 12, border: "0.5px solid #e8e5e0", padding: 32 },
+        page: { minHeight: "100vh", background: "#f8f7f4", padding: "40px 0", fontFamily: "sans-serif" },
+        container: { maxWidth: 700, margin: "0 auto", padding: "0 20px" },
+        heading: { fontSize: 24, fontWeight: 400, marginBottom: 24, color: "#1a1a1a" },
+        card: { background: "#fff", borderRadius: 12, border: "0.5px solid #e8e5e0", padding: 32 },
         avatarWrap: { display: "flex", alignItems: "center", gap: 20, marginBottom: 28, paddingBottom: 24, borderBottom: "0.5px solid #f0ede8" },
-        avatar:     { width: 80, height: 80, borderRadius: "50%", objectFit: "cover" as const, background: "#e8e5e0" },
+        avatar: { width: 80, height: 80, borderRadius: "50%", objectFit: "cover" as const, background: "#e8e5e0" },
         avatarPlaceholder: { width: 80, height: 80, borderRadius: "50%", background: "#e8e5e0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, color: "#aaa", cursor: "pointer" },
-        uploadBtn:  { background: "none", border: "0.5px solid #ddd", borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer" },
-        tabs:       { display: "flex", gap: 0, marginBottom: 28, borderBottom: "0.5px solid #e8e5e0" },
-        tab:        { padding: "10px 20px", fontSize: 13, cursor: "pointer", background: "none", border: "none", color: "#888", borderBottom: "2px solid transparent" },
-        tabActive:  { color: "#1a1a1a", borderBottom: "2px solid #1a1a1a", fontWeight: 500 },
-        grid:       { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 24px" },
-        label:      { display: "block", fontSize: 12, color: "#888", marginBottom: 6, fontWeight: 600, letterSpacing: "0.05em" },
-        input:      { width: "100%", padding: "10px 12px", border: "0.5px solid #ddd", borderRadius: 8, fontSize: 13, marginBottom: 16, boxSizing: "border-box" as const },
-        select:     { width: "100%", padding: "10px 12px", border: "0.5px solid #ddd", borderRadius: 8, fontSize: 13, marginBottom: 16 },
-        saveBtn:    { background: "#1a1a1a", color: "#fff", border: "none", borderRadius: 8, padding: "10px 28px", fontSize: 13, cursor: "pointer" },
-        msg:        { fontSize: 13, padding: "10px 14px", borderRadius: 8, marginTop: 16 },
+        uploadBtn: { background: "none", border: "0.5px solid #ddd", borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer" },
+        tabs: { display: "flex", gap: 0, marginBottom: 28, borderBottom: "0.5px solid #e8e5e0" },
+        tab: { padding: "10px 20px", fontSize: 13, cursor: "pointer", background: "none", border: "none", color: "#888", borderBottom: "2px solid transparent" },
+        tabActive: { color: "#1a1a1a", borderBottom: "2px solid #1a1a1a", fontWeight: 500 },
+        grid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 24px" },
+        label: { display: "block", fontSize: 12, color: "#888", marginBottom: 6, fontWeight: 600, letterSpacing: "0.05em" },
+        input: { width: "100%", padding: "10px 12px", border: "0.5px solid #ddd", borderRadius: 8, fontSize: 13, marginBottom: 16, boxSizing: "border-box" as const },
+        select: { width: "100%", padding: "10px 12px", border: "0.5px solid #ddd", borderRadius: 8, fontSize: 13, marginBottom: 16 },
+        saveBtn: { background: "#1a1a1a", color: "#fff", border: "none", borderRadius: 8, padding: "10px 28px", fontSize: 13, cursor: "pointer" },
+        msg: { fontSize: 13, padding: "10px 14px", borderRadius: 8, marginTop: 16 },
     };
 
     if (isLoading) return (
@@ -234,7 +234,14 @@ const ProfilePage: React.FC = () => {
                                 onChange={e => setProfile({ ...profile, billingAddress: e.target.value })} />
 
                             <button style={s.saveBtn} disabled={isSaving} onClick={handleSaveProfile}>
-                                {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
+                                {isSaving ? (
+                                    <>
+                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        Đang lưu...
+                                    </>
+                                ) : (
+                                    "Lưu thay đổi"
+                                )}
                             </button>
                         </div>
                     )}
@@ -261,7 +268,14 @@ const ProfilePage: React.FC = () => {
                                 onChange={e => setConfirmPassword(e.target.value)} />
 
                             <button style={s.saveBtn} disabled={isSaving} onClick={handleChangePassword}>
-                                {isSaving ? "Đang xử lý..." : "Đổi mật khẩu"}
+                                {isSaving ? (
+                                    <>
+                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        Đang xử lý...
+                                    </>
+                                ) : (
+                                    "Đổi mật khẩu"
+                                )}
                             </button>
                         </div>
                     )}
