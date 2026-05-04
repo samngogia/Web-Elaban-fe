@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from "react";
 import FormatNumber from "../utils/FormatNumber";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const AdminDashboard: React.FC = () => {
     const [stats, setStats] = useState<any>(null);
     const [recentOrders, setRecentOrders] = useState<any[]>([]);
     const [revenueData, setRevenueData] = useState<any[]>([]);
+    const [topProducts, setTopProducts] = useState<any[]>([]);
     const token = localStorage.getItem("token");
+    // Trong AdminDashboard Component, thêm state:
+
+
+
 
     useEffect(() => {
         const headers = {
@@ -55,10 +61,23 @@ const AdminDashboard: React.FC = () => {
                 setRevenueData([]);
             }
         };
+        // Trong useEffect, thêm hàm fetch:
+        const fetchTopProducts = async () => {
+            try {
+                const res = await fetch("http://localhost:8089/admin/dashboard/top-selling", { headers });
+                if (res.ok) {
+                    const text = await res.text();
+                    setTopProducts(text ? JSON.parse(text) : []);
+                }
+            } catch (err) {
+                console.error("Lỗi top products:", err);
+            }
+        };
 
         fetchStats();
         fetchRecentOrders();
         fetchRevenue();
+        fetchTopProducts();
     }, [token]);
 
     const s: Record<string, React.CSSProperties> = {
@@ -99,6 +118,67 @@ const AdminDashboard: React.FC = () => {
                         <div style={s.value}>{item.value}</div>
                     </div>
                 ))}
+            </div>
+            {/* THỐNG KÊ SẢN PHẨM & CẢNH BÁO TỒN KHO */}
+            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24, marginBottom: 24 }}>
+
+                {/* Cột 1: Biểu đồ Top 5 Bán chạy tuần qua */}
+                <div style={s.section}>
+                    <div style={s.sectionTitle}>🔥 Top 5 Bán Chạy (7 Ngày Qua)</div>
+                    <div style={{ height: 300 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={topProducts} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                <XAxis type="number" />
+                                <YAxis dataKey="productName" type="category" width={150} tick={{ fontSize: 12 }} />
+                                <Tooltip cursor={{ fill: 'transparent' }} />
+                                <Bar dataKey="totalSold" name="Số lượng bán" fill="#1a1a1a" radius={[0, 4, 4, 0]} barSize={20} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                {/* Cột 2: Cảnh báo Hết Hàng (AI Dự báo cơ bản) */}
+                <div style={s.section}>
+                    <div style={s.sectionTitle}>⚠️ Cảnh Báo Tồn Kho</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        {topProducts.map(p => {
+                            // Logic dự báo Burn Rate: 
+                            // Số lượng bán trong 7 ngày -> Tính trung bình 1 ngày bán bao nhiêu cái
+                            const dailyBurnRate = p.totalSold / 7;
+                            // Số ngày dự kiến hết hàng = Tồn kho hiện tại / Tốc độ bán
+                            const daysUntilOut = dailyBurnRate > 0 ? Math.floor(p.currentStock / dailyBurnRate) : 999;
+
+                            let statusColor = "#27500A"; // Xanh (An toàn)
+                            let statusText = "An toàn";
+
+                            if (daysUntilOut <= 3 || p.currentStock === 0) {
+                                statusColor = "#d32f2f"; // Đỏ (Khẩn cấp)
+                                statusText = p.currentStock === 0 ? "Hết hàng" : "Sắp hết (<3 ngày)";
+                            } else if (daysUntilOut <= 7) {
+                                statusColor = "#f5a623"; // Vàng (Cảnh báo)
+                                statusText = "Còn ~ 1 tuần";
+                            }
+
+                            return (
+                                <div key={p.productId} style={{ padding: 12, border: "0.5px solid #eee", borderRadius: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                    <div style={{ flex: 1, marginRight: 10 }}>
+                                        <div style={{ fontSize: 13, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 150 }}>
+                                            {p.productName}
+                                        </div>
+                                        <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>
+                                            Kho: {p.currentStock} | Bán: {p.totalSold}/tuần
+                                        </div>
+                                    </div>
+                                    <span style={{ padding: "4px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600, background: `${statusColor}20`, color: statusColor, whiteSpace: "nowrap" }}>
+                                        {statusText}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                        {topProducts.length === 0 && <div style={{ fontSize: 13, color: "#aaa", textAlign: "center" }}>Chưa có dữ liệu giao dịch tuần này.</div>}
+                    </div>
+                </div>
             </div>
 
             {/* Doanh thu theo tháng */}

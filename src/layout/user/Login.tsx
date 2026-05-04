@@ -54,7 +54,7 @@ const Login = () => {
             .catch((error) => {
                 // Handle login error
                 console.error('Login error: ', error);
-                setError('Login failed. Please check your username and password.');
+                setError('Đăng nhập không thành công. Vui lòng kiểm tra lại tên người dùng và mật khẩu của bạn.');
             });
     };
 

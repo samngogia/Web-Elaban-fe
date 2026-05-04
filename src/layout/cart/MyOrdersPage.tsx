@@ -179,7 +179,19 @@ const MyOrdersPage: React.FC = () => {
             </div>
         </div>
     );
+    // Hàm xử lý đường dẫn ảnh thông minh
+    const getImageUrl = (imagePath: string) => {
+        if (!imagePath) return "https://placehold.co/50x50/eeeeee/999999?text=No+Img";
+        if (imagePath.startsWith("http")) return imagePath;
 
+        // Xóa chữ /images/ hoặc images/ bị lặp ở đầu chuỗi (nếu có)
+        let cleanPath = imagePath;
+        if (cleanPath.startsWith("/images/")) cleanPath = cleanPath.replace("/images/", "");
+        else if (cleanPath.startsWith("images/")) cleanPath = cleanPath.replace("images/", "");
+        else if (cleanPath.startsWith("/")) cleanPath = cleanPath.substring(1);
+
+        return `http://localhost:8089/images/${cleanPath}`;
+    };
     return (
         <div style={s.page}>
             <div style={s.container}>
@@ -249,18 +261,17 @@ const MyOrdersPage: React.FC = () => {
                                         <div key={i} style={s.productRow}>
                                             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                                                 <img
-                                                    src={
-                                                        detail.image?.startsWith("http")
-                                                            ? detail.image
-                                                            : `http://localhost:8089/images/${detail.image}`
-                                                    }
+                                                    src={getImageUrl(detail.image)}
+                                                    onError={(e) => {
+                                                        e.currentTarget.src = "https://placehold.co/50x50/eeeeee/999999?text=No+Img";
+                                                    }}
                                                     style={{
                                                         width: 50,
                                                         height: 50,
                                                         borderRadius: 8,
                                                         objectFit: "cover"
                                                     }}
-                                                    alt=""
+                                                    alt={detail.productName}
                                                 />
                                                 <div>
                                                     <div style={{ fontWeight: 500 }}>{detail.productName}</div>

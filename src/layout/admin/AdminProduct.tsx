@@ -355,7 +355,19 @@ const AdminProduct: React.FC = () => {
                                     </td>
                                     <td style={s.td}>{FormatNumber(p.sellingPrice)}đ</td>
                                     <td style={s.td}><del style={{ color: "#aaa" }}>{FormatNumber(p.listPrice)}đ</del></td>
-                                    <td style={s.td}>{p.quantity}</td>
+                                    <td style={s.td}>
+                                        {p.quantity === 0 ? (
+                                            <span style={{ padding: "4px 8px", background: "#fee2e2", color: "#dc2626", borderRadius: 4, fontWeight: 600, fontSize: 12 }}>
+                                                Hết hàng
+                                            </span>
+                                        ) : p.quantity <= 5 ? (
+                                            <span style={{ padding: "4px 8px", background: "#fef3c7", color: "#d97706", borderRadius: 4, fontWeight: 600, fontSize: 12 }}>
+                                                Sắp hết ({p.quantity})
+                                            </span>
+                                        ) : (
+                                            <span style={{ fontWeight: 500 }}>{p.quantity}</span>
+                                        )}
+                                    </td>
                                     <td style={s.td}>{p.brand}</td>
                                     <td style={s.td}>
                                         <button style={s.editBtn} onClick={() => handleEdit(p)}>Sửa</button>

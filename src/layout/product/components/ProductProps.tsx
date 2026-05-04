@@ -101,21 +101,21 @@ const ProductProps: React.FC<ProductPropsInterface> = (props) => {
 
     // 1. Lấy chuỗi ảnh gốc từ API (có thể nó đang bị dính chữ /images/)
     const rawFileName = imageList[0]?.url ?? imageList[0]?.data;
-    
-    let imageUrl = "/no-image.png"; 
+
+    let imageUrl = "/no-image.png";
 
     if (rawFileName && rawFileName !== "") {
         // 2. Tách chuỗi ra thành nhiều khúc bởi dấu '/', sau đó dùng hàm .pop() để bốc ĐÚNG phần tử cuối cùng (tên file thật)
-        const actualName = rawFileName.split('/').pop(); 
-        
+        const actualName = rawFileName.split('/').pop();
+
         // 3. Tự mình lắp lại link chuẩn 1 lần duy nhất (bọc thêm encodeURIComponent để chống lỗi khoảng trắng)
         if (actualName) {
             imageUrl = `http://localhost:8089/images/${encodeURIComponent(actualName)}`;
         }
     }
-    
 
-    
+
+
     return (
         <>
 
@@ -240,16 +240,29 @@ const ProductProps: React.FC<ProductPropsInterface> = (props) => {
                                     </p>
                                 )}
 
-                                {/* Số lượng */}
+                                {/* MỚI THÊM: Hiển thị số lượng kho */}
+                                {props.product.quantity !== undefined && (
+                                    <p style={{ fontSize: 13, color: '#666', marginBottom: 16 }}>
+                                        <b>Số lượng kho:</b> {props.product.quantity}
+                                    </p>
+                                )}
+                                {/* Số lượng (Đã chặn max) */}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                                     <button
                                         className="btn btn-outline-secondary btn-sm"
                                         onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                                        disabled={quantity <= 1} // Tự động làm mờ nếu đang là 1
                                     >−</button>
+                                    
                                     <span style={{ minWidth: 32, textAlign: 'center' }}>{quantity}</span>
+                                    
                                     <button
                                         className="btn btn-outline-secondary btn-sm"
-                                        onClick={() => setQuantity(q => q + 1)}
+                                        onClick={() => setQuantity(q => {
+                                            const maxQuantity = props.product.quantity || 1;
+                                            return q < maxQuantity ? q + 1 : q;
+                                        })}
+                                        disabled={quantity >= (props.product.quantity || 1)} // Tự động làm mờ nếu chạm ngưỡng max
                                     >+</button>
                                 </div>
 

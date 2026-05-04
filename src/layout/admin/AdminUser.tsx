@@ -10,6 +10,10 @@ const AdminUser: React.FC = () => {
     const [search, setSearch] = useState("");
     const [filterRole, setFilterRole] = useState("");
 
+    // --- STATE CHO PHÂN TRANG ---
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5; // Bạn có thể đổi thành 10 nếu muốn hiển thị nhiều hơn
+
     // --- STATE CHO MODAL THÊM NHÂN VIÊN ---
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({
@@ -26,31 +30,45 @@ const AdminUser: React.FC = () => {
         try {
             const res = await fetch(`${API}/admin/users`, { headers: authHeader() });
             const data = await res.json();
-            console.log("Dữ liệu 1 user từ Java gửi xuống:", data[0]);
             setUsers(Array.isArray(data) ? data : []);
-        } catch (err) { console.error(err); }
-        finally { setIsLoading(false); }
+        } catch (err) { 
+            console.error("Lỗi lấy danh sách:", err); 
+        } finally { 
+            setIsLoading(false); 
+        }
     };
 
     useEffect(() => { fetchUsers(); }, []);
 
-    const handleToggleEnabled = async (id: number) => {
-        await fetch(`${API}/admin/users/${id}/toggle-enabled`, {
-            method: "PATCH",
-            headers: authHeader()
-        });
-        fetchUsers();
-    };
+    // Reset về trang 1 mỗi khi người dùng gõ tìm kiếm hoặc đổi bộ lọc
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [search, filterRole]);
 
-    const handleDelete = async (id: number, username: string) => {
-        if (!window.confirm(`Xóa tài khoản "${username}"?`)) return;
-        await fetch(`${API}/admin/users/${id}`, {
-            method: "DELETE",
-            headers: authHeader()
-        });
-        fetchUsers();
-    };
+    // --- HÀM KHÓA/MỞ KHÓA TÀI KHOẢN ---
+    const handleToggleEnabled = async (id: number, currentStatus: boolean) => {
+        const action = currentStatus ? "khóa" : "mở khóa";
+        if (!window.confirm(`Bạn có chắc muốn ${action} tài khoản này?`)) return;
 
+        try {
+            const res = await fetch(`${API}/admin/users/${id}/toggle-enabled`, {
+                method: "PATCH",
+                headers: authHeader()
+            });
+            
+            if (res.ok) {
+                // Thành công thì gọi lại API để load trạng thái mới
+                fetchUsers();
+            } else {
+                // Nếu lỗi, in thẳng lỗi từ Backend ra để biết đường sửa
+                const errorText = await res.text();
+                alert(`Không thể ${action}. Lỗi từ server: ${res.status} - ${errorText}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Lỗi kết nối đến server khi thử khóa/mở khóa!");
+        }
+    };
 
     // --- HÀM XỬ LÝ LƯU NHÂN VIÊN MỚI ---
     const handleAddUser = async (e: React.FormEvent) => {
@@ -67,9 +85,9 @@ const AdminUser: React.FC = () => {
 
             if (res.ok) {
                 alert("Thêm người dùng thành công!");
-                setShowModal(false); // Đóng modal
-                setFormData({ username: "", email: "", password: "", firstName: "", lastName: "", roleName: "STAFF" }); // Reset form
-                fetchUsers(); // Tải lại danh sách
+                setShowModal(false);
+                setFormData({ username: "", email: "", password: "", firstName: "", lastName: "", roleName: "STAFF" });
+                fetchUsers();
             } else {
                 const text = await res.text();
                 alert("Lỗi: " + text);
@@ -80,23 +98,25 @@ const AdminUser: React.FC = () => {
         }
     };
 
-    // 1. Thêm hàm kiểm tra thông minh này
     const hasRole = (roles: any[], roleName: string) => {
         if (!roles || !Array.isArray(roles)) return false;
-        // Kiểm tra xem role đang là chuỗi "ROLE_ADMIN" hay là object { name: "ROLE_ADMIN" }
         return roles.some(r => r === roleName || r.name === roleName || r.authority === roleName);
     };
 
-
-
-    // 2. Cập nhật lại logic tìm lọc (để nút bấm Filter hoạt động chuẩn)
+    // --- LỌC DỮ LIỆU ---
     const filteredUsers = users.filter(u => {
         const matchSearch = u.username?.toLowerCase().includes(search.toLowerCase()) ||
             u.email?.toLowerCase().includes(search.toLowerCase());
-        // Thay thế u.roles?.includes(...) bằng hàm hasRole
         const matchRole = filterRole === "" || hasRole(u.roles, filterRole);
         return matchSearch && matchRole;
     });
+
+    // --- CẮT DỮ LIỆU CHO PHÂN TRANG ---
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    const currentUsers = filteredUsers.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     const s: Record<string, React.CSSProperties> = {
         header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
@@ -107,8 +127,7 @@ const AdminUser: React.FC = () => {
         badge: { padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 500 },
         filterBtn: { padding: "6px 14px", border: "0.5px solid #ddd", borderRadius: 20, fontSize: 12, cursor: "pointer", marginRight: 8, background: "#fff" },
         filterBtnActive: { background: "#1a1a1a", color: "#fff", border: "0.5px solid #1a1a1a" },
-        toggleBtn: { background: "none", border: "0.5px solid #ddd", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", marginRight: 6 },
-        deleteBtn: { background: "none", border: "0.5px solid #ffcdd2", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", color: "#d32f2f" },
+        toggleBtn: { background: "none", border: "0.5px solid #ddd", borderRadius: 6, padding: "6px 14px", fontSize: 12, cursor: "pointer", fontWeight: 500 },
         avatar: { width: 32, height: 32, borderRadius: "50%", background: "#e8e5e0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 500, color: "#666" },
         modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 },
         modalContent: { background: "#fff", padding: 24, borderRadius: 12, width: 400, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" },
@@ -116,17 +135,17 @@ const AdminUser: React.FC = () => {
         input: { padding: "10px 12px", border: "0.5px solid #ddd", borderRadius: 6, fontSize: 13, width: "100%", boxSizing: "border-box" },
         label: { fontSize: 12, fontWeight: 600, color: "#555" },
         btnPrimary: { background: "#1a1a1a", color: "#fff", border: "none", padding: "10px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontWeight: 500, flex: 1 },
-        btnSecondary: { background: "#f0f0f0", color: "#333", border: "none", padding: "10px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontWeight: 500, flex: 1 }
+        btnSecondary: { background: "#f0f0f0", color: "#333", border: "none", padding: "10px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontWeight: 500, flex: 1 },
+        pageBtn: { padding: "6px 12px", border: "0.5px solid #ddd", borderRadius: 6, fontSize: 12, cursor: "pointer", margin: "0 3px", background: "#fff" },
+        pageBtnActive: { background: "#1a1a1a", color: "#fff", border: "0.5px solid #1a1a1a" },
     };
 
-    // 3. Sửa lại hàm lấy màu Badge
     const getRoleBadge = (roles: any[]): React.CSSProperties => {
         if (hasRole(roles, "ADMIN") || hasRole(roles, "ROLE_ADMIN")) return { ...s.badge, background: "#FCEBEB", color: "#791F1F" };
         if (hasRole(roles, "STAFF") || hasRole(roles, "ROLE_STAFF")) return { ...s.badge, background: "#EEEDFE", color: "#3C3489" };
         return { ...s.badge, background: "#f0f0f0", color: "#666" };
     };
 
-    // 4. Sửa lại hàm lấy Text Label
     const getRoleLabel = (roles: any[]) => {
         if (hasRole(roles, "ADMIN") || hasRole(roles, "ROLE_ADMIN")) return "ADMIN";
         if (hasRole(roles, "STAFF") || hasRole(roles, "ROLE_STAFF")) return "STAFF";
@@ -135,11 +154,9 @@ const AdminUser: React.FC = () => {
 
     return (
         <div>
-
             <div style={s.header}>
                 <div>
                     <h2 style={{ fontSize: 22, fontWeight: 400 }}>Quản lý người dùng</h2>
-
                 </div>
                 <div style={{ display: "flex", gap: 12 }}>
                     <input
@@ -148,7 +165,6 @@ const AdminUser: React.FC = () => {
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                     />
-                    {/* NÚT BẤM MỞ MODAL THÊM NHÂN VIÊN */}
                     <button
                         style={{ background: "#d32f2f", color: "#fff", border: "none", borderRadius: 8, padding: "0 16px", cursor: "pointer", fontSize: 13, fontWeight: 500 }}
                         onClick={() => setShowModal(true)}
@@ -158,8 +174,6 @@ const AdminUser: React.FC = () => {
                 </div>
             </div>
 
-
-            {/* Filter role */}
             <div style={{ marginBottom: 20 }}>
                 {[
                     { label: "Tất cả", value: "" },
@@ -179,7 +193,7 @@ const AdminUser: React.FC = () => {
 
             <div style={s.card}>
                 <div style={{ fontSize: 13, color: "#888", marginBottom: 16 }}>
-                    {filteredUsers.length} người dùng
+                    Hiển thị {currentUsers.length} / {filteredUsers.length} người dùng
                 </div>
 
                 {isLoading ? (
@@ -192,77 +206,90 @@ const AdminUser: React.FC = () => {
                         </p>
                     </div>
                 ) : (
-                    <table style={s.table}>
-                        <thead>
-                            <tr>
-                                <th style={s.th}>NGƯỜI DÙNG</th>
-                                <th style={s.th}>EMAIL</th>
-                                <th style={s.th}>VAI TRÒ</th>
-                                <th style={s.th}>TRẠNG THÁI</th>
-                                <th style={s.th}></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredUsers.map(user => (
-                                <tr key={user.id}>
-                                    <td style={s.td}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                            <div style={s.avatar}>
-                                                {user.username?.[0]?.toUpperCase()}
-                                            </div>
-                                            <div>
-                                                <div style={{ fontWeight: 500 }}>{user.username}</div>
-                                                <div style={{ fontSize: 12, color: "#aaa" }}>
-                                                    {user.firstName} {user.lastName}
+                    <>
+                        <table style={s.table}>
+                            <thead>
+                                <tr>
+                                    <th style={s.th}>NGƯỜI DÙNG</th>
+                                    <th style={s.th}>EMAIL</th>
+                                    <th style={s.th}>VAI TRÒ</th>
+                                    <th style={s.th}>TRẠNG THÁI</th>
+                                    <th style={s.th}></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {/* LƯU Ý: Đổi filteredUsers.map thành currentUsers.map để chỉ hiện data trang hiện tại */}
+                                {currentUsers.map(user => (
+                                    <tr key={user.id}>
+                                        <td style={s.td}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                                <div style={s.avatar}>
+                                                    {user.username?.[0]?.toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: 500 }}>{user.username}</div>
+                                                    <div style={{ fontSize: 12, color: "#aaa" }}>
+                                                        {user.firstName} {user.lastName}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td style={s.td}>{user.email}</td>
-                                    <td style={s.td}>
-                                        <span style={getRoleBadge(user.roles)}>
-                                            {getRoleLabel(user.roles)}
-                                        </span>
-                                    </td>
-                                    <td style={s.td}>
-                                        <span style={{
-                                            ...s.badge,
-                                            background: user.isEnabled ? "#EAF3DE" : "#f0f0f0",
-                                            color: user.isEnabled ? "#27500A" : "#888"
-                                        }}>
-                                            {user.isEnabled ? "Hoạt động" : "Bị khóa"}
-                                        </span>
-                                    </td>
-                                    <td style={s.td}>
-                                        <button
-                                            style={s.toggleBtn}
-                                            onClick={() => handleToggleEnabled(user.id)}
-                                        >
-                                            {user.isEnabled ? "Khóa" : "Mở khóa"}
-                                        </button>
-                                        <button
-                                            style={s.deleteBtn}
-                                            onClick={() => handleDelete(user.id, user.username)}
-                                        >
-                                            Xóa
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                                        </td>
+                                        <td style={s.td}>{user.email}</td>
+                                        <td style={s.td}>
+                                            <span style={getRoleBadge(user.roles)}>
+                                                {getRoleLabel(user.roles)}
+                                            </span>
+                                        </td>
+                                        <td style={s.td}>
+                                            <span style={{
+                                                ...s.badge,
+                                                background: user.isEnabled ? "#EAF3DE" : "#fee2e2",
+                                                color: user.isEnabled ? "#27500A" : "#dc2626"
+                                            }}>
+                                                {user.isEnabled ? "Hoạt động" : "Bị khóa"}
+                                            </span>
+                                        </td>
+                                        <td style={s.td}>
+                                            {/* Đã xóa nút Xóa, chỉ còn nút Khóa/Mở Khóa */}
+                                            <button
+                                                style={{
+                                                    ...s.toggleBtn,
+                                                    color: user.isEnabled ? "#d32f2f" : "#2e7d32"
+                                                }}
+                                                onClick={() => handleToggleEnabled(user.id, user.isEnabled)}
+                                            >
+                                                {user.isEnabled ? "Khóa tài khoản" : "Mở khóa"}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {/* --- GIAO DIỆN PHÂN TRANG --- */}
+                        {totalPages > 1 && (
+                            <div style={{ display: "flex", justifyContent: "center", marginTop: 24 }}>
+                                {Array.from({ length: totalPages }, (_, i) => (
+                                    <button
+                                        key={i}
+                                        style={{ ...s.pageBtn, ...(i + 1 === currentPage ? s.pageBtnActive : {}) }}
+                                        onClick={() => setCurrentPage(i + 1)}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
-            {/* ========================================== */}
             {/* MODAL FORM THÊM NHÂN VIÊN */}
-            {/* ========================================== */}
             {showModal && (
                 <div style={s.modalOverlay}>
                     <div style={s.modalContent}>
                         <h3 style={{ margin: "0 0 20px 0", fontSize: 18, fontWeight: 500 }}>Thêm tài khoản mới</h3>
                         <form onSubmit={handleAddUser}>
-
                             <div style={{ display: "flex", gap: 12 }}>
                                 <div style={{ ...s.inputGroup, flex: 1 }}>
                                     <label style={s.label}>Họ (Last Name)</label>
@@ -273,22 +300,18 @@ const AdminUser: React.FC = () => {
                                     <input style={s.input} required value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} />
                                 </div>
                             </div>
-
                             <div style={s.inputGroup}>
                                 <label style={s.label}>Tên đăng nhập (Username)</label>
                                 <input style={s.input} required value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} />
                             </div>
-
                             <div style={s.inputGroup}>
                                 <label style={s.label}>Email</label>
                                 <input type="email" style={s.input} required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                             </div>
-
                             <div style={s.inputGroup}>
                                 <label style={s.label}>Mật khẩu</label>
                                 <input type="password" style={s.input} required minLength={6} value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
                             </div>
-
                             <div style={s.inputGroup}>
                                 <label style={s.label}>Vai trò (Role)</label>
                                 <select style={s.input} value={formData.roleName} onChange={e => setFormData({ ...formData, roleName: e.target.value })}>
@@ -297,7 +320,6 @@ const AdminUser: React.FC = () => {
                                     <option value="USER">Khách hàng (USER)</option>
                                 </select>
                             </div>
-
                             <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
                                 <button type="button" style={s.btnSecondary} onClick={() => setShowModal(false)}>Hủy bỏ</button>
                                 <button type="submit" style={s.btnPrimary}>Tạo tài khoản</button>
