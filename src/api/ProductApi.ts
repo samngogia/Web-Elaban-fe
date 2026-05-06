@@ -76,27 +76,30 @@ export async function getAllProducts(
     sortBy: string = "id",
     sortDir: string = "desc"
 ): Promise<ResultInterface> {
-    let path = `http://localhost:8089/products?sort=${sortBy},${sortDir}&size=${size}&page=${currentPage}`;
+    let path = `http://localhost:8089/products/search/findByActiveTrue?sort=${sortBy},${sortDir}&size=${size}&page=${currentPage}`;
     if (minPrice !== undefined) path += `&minPrice=${minPrice}`;
     if (maxPrice !== undefined) path += `&maxPrice=${maxPrice}`;
     return fetchProductList(path);
 }
 export async function getTop3LatestProducts(): Promise<ResultInterface> {
     //xác định  endpoint
-    const path = `http://localhost:8089/products?sort=id,desc&page=0&size=3`;
+    const path = `http://localhost:8089/products/search/findByActiveTrue?sort=id,desc&page=0&size=3`;
     return fetchProductList(path);// fetchProductList là tên mới của layDanhSachSach
 
 }
 
 export async function searchProducts(keyword: string, page: number = 0, size: number = 8, categoryId: number = 0): Promise<ResultInterface> {
-    let path: string = `http://localhost:8089/products?sort=id,desc&page=${page}&size=${size}`; //giá trị mặc định
+    let path: string = `http://localhost:8089/products/search/findByActiveTrue?sort=id,desc&page=${page}&size=${size}`; 
 
     if (keyword !== '' && categoryId == 0) {
-        path = `http://localhost:8089/products/search/findByProductNameContaining?productName=${encodeURIComponent(keyword)}&page=${page}&size=${size}`;
+        // CẬP NHẬT TÊN HÀM: findByNameContainingAndActiveTrue (Và đổi tham số productName thành name cho khớp Backend)
+        path = `http://localhost:8089/products/search/findByNameContainingAndActiveTrue?name=${encodeURIComponent(keyword)}&page=${page}&size=${size}`;
     } else if (keyword === '' && categoryId > 0) {
+        // CẬP NHẬT TÊN HÀM: findByCategories_Id
         path = `http://localhost:8089/products/search/findByCategories_Id?categoryId=${categoryId}&page=${page}&size=${size}`;
     } else if (keyword !== '' && categoryId > 0) {
-        path = `http://localhost:8089/products/search/findByProductNameContainingAndCategoryList_CategoryId?productName=${encodeURIComponent(keyword)}&categoryId=${categoryId}&page=${page}&size=${size}`;
+        // CẬP NHẬT TÊN HÀM: findByNameContainingAndCategories_IdAndActiveTrue
+        path = `http://localhost:8089/products/search/findByNameContainingAndCategories_IdAndActiveTrue?name=${encodeURIComponent(keyword)}&id=${categoryId}&page=${page}&size=${size}`;
     }
 
     return fetchProductList(path);
@@ -105,21 +108,23 @@ export async function searchProducts(keyword: string, page: number = 0, size: nu
 
 
 export async function getProductById(productId: number): Promise<ProductModel | null> {
-
+    // TRẢ LẠI NHƯ CŨ, KHÔNG THÊM findByActiveTrue VÀO ĐÂY
     const path = `http://localhost:8089/products/${productId}`;
 
     let result: ProductModel;
     try {
-
-
-        //Gọi phương thức request
         const response = await fetch(path);
-
         if (!response.ok) {
-            throw new Error(`Gặp lỗi trong quá trinh tải sách với mã sách ${productId}`);
+            throw new Error(`Gặp lỗi trong quá trinh tải sản phẩm với mã ${productId}`);
         }
-
+        
         const productData = await response.json();
+        
+        // (Tùy chọn) Nếu bạn muốn chặn đứng không cho xem chi tiết khi sản phẩm đã bị ẩn:
+        if (productData.active === false) {
+             console.warn("Sản phẩm này đã bị ẩn!");
+             return null; 
+        }
 
         if (productData) {
             return {
@@ -135,15 +140,12 @@ export async function getProductById(productId: number): Promise<ProductModel | 
                 sellingPrice: productData.sellingPrice
             };
         } else {
-            throw new Error(`Không tìm thấy sách với mã sách`);
-
+            throw new Error(`Không tìm thấy sản phẩm`);
         }
     } catch (error) {
-
-        console.error("Error in laySachTheoMaSach:", error);
+        console.error("Error in getProductById:", error);
         return null;
     }
-
 }
 
 
@@ -161,10 +163,12 @@ export async function filterProducts(
     let path = "";
 
     if (categoryId && categoryId > 0) {
+        // GỌI THẲNG TÊN HÀM findByCategoryAndPrice
         path = `http://localhost:8089/products/search/findByCategoryAndPrice` +
                `?categoryId=${categoryId}` +
                `&page=${page}&size=${size}&sort=${sortBy},${sortDir}`;
     } else {
+        // GỌI THẲNG TÊN HÀM findByFilter
         path = `http://localhost:8089/products/search/findByFilter` +
                `?name=${encodeURIComponent(name)}` +
                `&page=${page}&size=${size}&sort=${sortBy},${sortDir}`;

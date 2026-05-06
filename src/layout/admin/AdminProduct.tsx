@@ -12,7 +12,8 @@ const INITIAL_PRODUCT = {
     brand: '',
     dimensions: '',
     material: '',
-    categoryId: '' // MỚI THÊM: Trạng thái lưu ID thể loại tạm thời
+    categoryId: '',
+    active: true // MỚI THÊM: Quản lý trạng thái Ẩn/Hiện sản phẩm
 };
 
 const API = "http://localhost:8089";
@@ -21,7 +22,7 @@ const authHeader = () => ({ "Authorization": `Bearer ${getToken()}` });
 
 const AdminProduct: React.FC = () => {
     const [products, setProducts] = useState<any[]>([]);
-    const [categories, setCategories] = useState<any[]>([]); // MỚI THÊM: State chứa danh sách thể loại
+    const [categories, setCategories] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editMode, setEditMode] = useState(false);
@@ -33,7 +34,6 @@ const AdminProduct: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
-    // MỚI THÊM: Hàm gọi API lấy danh sách Thể loại
     const fetchCategories = async () => {
         try {
             const res = await fetch(`${API}/admin/categories`, { headers: authHeader() });
@@ -62,7 +62,6 @@ const AdminProduct: React.FC = () => {
         }
     };
 
-    // MỚI THÊM: Gọi fetchCategories khi component render lần đầu
     useEffect(() => {
         fetchProducts();
         fetchCategories();
@@ -78,12 +77,10 @@ const AdminProduct: React.FC = () => {
         setIsSubmitting(true);
 
         try {
-            // MỚI THÊM: Tách categoryId ra, tạo mảng categories để map với entity @ManyToMany trong Java
             const { id, categoryId, ...productData } = product;
 
             const payload = {
                 ...productData,
-                // Gói id thể loại vào mảng object để Spring Boot hiểu
                 categories: categoryId ? [`${API}/categories/${categoryId}`] : []
             };
 
@@ -91,16 +88,14 @@ const AdminProduct: React.FC = () => {
                 const res = await fetch(`${API}/products/${product.id}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json", ...authHeader() },
-                    body: JSON.stringify(payload) // Gửi payload đã xử lý category
+                    body: JSON.stringify(payload)
                 });
-
                 if (!res.ok) throw new Error("Cập nhật thất bại: " + await res.text());
-
             } else {
                 const res = await fetch(`${API}/products`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", ...authHeader() },
-                    body: JSON.stringify(payload) // Gửi payload đã xử lý category
+                    body: JSON.stringify(payload)
                 });
 
                 if (!res.ok) throw new Error("Thêm thất bại: " + await res.text());
@@ -149,7 +144,7 @@ const AdminProduct: React.FC = () => {
             brand: p.brand ?? '',
             dimensions: p.dimensions ?? '',
             material: p.material ?? '',
-            // MỚI THÊM: Nếu Spring Data trả về categories, lấy ID của phần tử đầu tiên để hiện lên form
+            active: p.active ?? true, // Kế thừa trạng thái hiện tại
             categoryId: p.categories && p.categories.length > 0 ? p.categories[0].id.toString() : ''
         });
         setEditMode(true);
@@ -157,14 +152,27 @@ const AdminProduct: React.FC = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    const handleDelete = async (id: number) => {
-        if (!window.confirm("Bạn có chắc muốn xóa sản phẩm này?")) return;
+    // MỚI: Đổi từ Xóa (Delete) sang Ẩn/Hiện (Patch trạng thái active)
+    const handleToggleVisibility = async (p: any) => {
+        const isCurrentlyActive = p.active !== false; // Mặc định là true nếu null
+        const actionText = isCurrentlyActive ? "ẩn" : "hiển thị lại";
+        
+        if (!window.confirm(`Bạn có chắc muốn ${actionText} sản phẩm này?`)) return;
+        
         try {
-            await fetch(`${API}/products/${id}`, {
-                method: "DELETE",
-                headers: authHeader()
+            // Dùng PATCH để cập nhật mỗi trường active mà không ảnh hưởng tới dữ liệu khác
+            const res = await fetch(`${API}/products/${p.id}`, {
+                method: "PATCH", 
+                headers: {
+                    "Content-Type": "application/json",
+                    ...authHeader()
+                },
+                body: JSON.stringify({ active: !isCurrentlyActive })
             });
-            fetchProducts(currentPage);
+
+            if (!res.ok) throw new Error(`Thao tác thất bại!`);
+            
+            fetchProducts(currentPage); // Tải lại danh sách
         } catch (err: any) {
             alert(err.message);
         }
@@ -198,7 +206,7 @@ const AdminProduct: React.FC = () => {
         product.listPrice > 0 &&
         product.sellingPrice > 0 &&
         product.quantity >= 0 &&
-        product.categoryId !== ""; // Bắt buộc phải chọn thể loại
+        product.categoryId !== ""; 
 
     return (
         <div>
@@ -215,7 +223,7 @@ const AdminProduct: React.FC = () => {
                 </div>
             </div>
 
-            {/* Form thêm/sửa */}
+            {/* Form thêm/sửa giữ nguyên */}
             {showForm && (
                 <div style={s.card}>
                     <h3 style={{ fontSize: 16, fontWeight: 500, marginBottom: 20 }}>
@@ -228,7 +236,6 @@ const AdminProduct: React.FC = () => {
                                 <input style={s.input} type="text" value={product.name}
                                     onChange={e => setProduct({ ...product, name: e.target.value })} required />
 
-                                {/* MỚI THÊM: Giao diện Dropdown chọn Thể loại */}
                                 <label style={s.label}>THỂ LOẠI</label>
                                 <select
                                     style={s.input}
@@ -311,8 +318,6 @@ const AdminProduct: React.FC = () => {
                 </div>
             )}
 
-            {/* Danh sách sản phẩm giữ nguyên như cũ... */}
-            {/* ... */}
             <div style={s.card}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                     <span style={{ fontSize: 13, color: "#888" }}>{filteredProducts.length} sản phẩm</span>
@@ -347,34 +352,58 @@ const AdminProduct: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredProducts.map(p => (
-                                <tr key={p.id}>
-                                    <td style={s.td}>#{p.id}</td>
-                                    <td style={{ ...s.td, maxWidth: 200 }}>
-                                        <span style={{ fontWeight: 500 }}>{p.name}</span>
-                                    </td>
-                                    <td style={s.td}>{FormatNumber(p.sellingPrice)}đ</td>
-                                    <td style={s.td}><del style={{ color: "#aaa" }}>{FormatNumber(p.listPrice)}đ</del></td>
-                                    <td style={s.td}>
-                                        {p.quantity === 0 ? (
-                                            <span style={{ padding: "4px 8px", background: "#fee2e2", color: "#dc2626", borderRadius: 4, fontWeight: 600, fontSize: 12 }}>
-                                                Hết hàng
-                                            </span>
-                                        ) : p.quantity <= 5 ? (
-                                            <span style={{ padding: "4px 8px", background: "#fef3c7", color: "#d97706", borderRadius: 4, fontWeight: 600, fontSize: 12 }}>
-                                                Sắp hết ({p.quantity})
-                                            </span>
-                                        ) : (
-                                            <span style={{ fontWeight: 500 }}>{p.quantity}</span>
-                                        )}
-                                    </td>
-                                    <td style={s.td}>{p.brand}</td>
-                                    <td style={s.td}>
-                                        <button style={s.editBtn} onClick={() => handleEdit(p)}>Sửa</button>
-                                        <button style={s.deleteBtn} onClick={() => handleDelete(p.id)}>Xóa</button>
-                                    </td>
-                                </tr>
-                            ))}
+                            {filteredProducts.map(p => {
+                                const isHidden = p.active === false; // Kiểm tra xem đã bị ẩn chưa
+
+                                return (
+                                    <tr key={p.id} style={{ 
+                                        opacity: isHidden ? 0.6 : 1, // Làm mờ nếu đã ẩn
+                                        background: isHidden ? "#fafafa" : "inherit"
+                                    }}>
+                                        <td style={s.td}>#{p.id}</td>
+                                        <td style={{ ...s.td, maxWidth: 200 }}>
+                                            <span style={{ fontWeight: 500 }}>{p.name}</span>
+                                            {/* Thêm Badge thông báo Đã ẩn */}
+                                            {isHidden && (
+                                                <span style={{ color: "#d32f2f", fontSize: 11, marginLeft: 8, fontWeight: 600, background: "#ffcdd2", padding: "2px 6px", borderRadius: 4 }}>
+                                                    Đã ẩn
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td style={s.td}>{FormatNumber(p.sellingPrice)}đ</td>
+                                        <td style={s.td}><del style={{ color: "#aaa" }}>{FormatNumber(p.listPrice)}đ</del></td>
+                                        <td style={s.td}>
+                                            {p.quantity === 0 ? (
+                                                <span style={{ padding: "4px 8px", background: "#fee2e2", color: "#dc2626", borderRadius: 4, fontWeight: 600, fontSize: 12 }}>
+                                                    Hết hàng
+                                                </span>
+                                            ) : p.quantity <= 5 ? (
+                                                <span style={{ padding: "4px 8px", background: "#fef3c7", color: "#d97706", borderRadius: 4, fontWeight: 600, fontSize: 12 }}>
+                                                    Sắp hết ({p.quantity})
+                                                </span>
+                                            ) : (
+                                                <span style={{ fontWeight: 500 }}>{p.quantity}</span>
+                                            )}
+                                        </td>
+                                        <td style={s.td}>{p.brand}</td>
+                                        <td style={s.td}>
+                                            <button style={s.editBtn} onClick={() => handleEdit(p)}>Sửa</button>
+                                            
+                                            {/* Đổi màu và text nút bấm tùy thuộc vào trạng thái */}
+                                            <button 
+                                                style={{ 
+                                                    ...s.deleteBtn, 
+                                                    color: isHidden ? "#2e7d32" : "#d32f2f", // Xanh lá nếu ẩn, đỏ nếu hiện
+                                                    borderColor: isHidden ? "#c8e6c9" : "#ffcdd2"
+                                                }} 
+                                                onClick={() => handleToggleVisibility(p)}
+                                            >
+                                                {isHidden ? "Hiện" : "Ẩn"}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
                         </tbody>
                     </table>
                 )}

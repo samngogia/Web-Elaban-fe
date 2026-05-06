@@ -105,13 +105,13 @@ const ProductDetail: React.FC = () => {
                 await Promise.all(data.map(async (p: any) => {
                     try {
                         const imgs = await getFirstImageByProductId(p.id);
-                        
+
                         // --- LOGIC XỬ LÝ ĐƯỜNG DẪN ẢNH CHUẨN ---
                         const rawFileName = imgs[0]?.url ?? imgs[0]?.data;
-                        let imageUrl = "/no-image.png"; 
+                        let imageUrl = "/no-image.png";
 
                         if (rawFileName && rawFileName !== "") {
-                            const actualName = rawFileName.split('/').pop(); 
+                            const actualName = rawFileName.split('/').pop();
                             if (actualName) {
                                 const safeFileName = encodeURIComponent(decodeURIComponent(actualName));
                                 imageUrl = `http://localhost:8089/images/${safeFileName}`;
@@ -119,7 +119,7 @@ const ProductDetail: React.FC = () => {
                         }
                         imgMap[p.id] = imageUrl;
                         // ----------------------------------------
-                        
+
                     } catch { }
                 }));
                 setRecImages(imgMap);
@@ -338,6 +338,7 @@ const ProductDetail: React.FC = () => {
                                 <h4 className="text-danger fw-bold">
                                     {FormatNumber(product.sellingPrice)}đ
                                 </h4>
+                                
                                 {/* Thông tin chi tiết */}
                                 <table className="table table-borderless table-sm">
                                     <tbody>
@@ -359,10 +360,14 @@ const ProductDetail: React.FC = () => {
                                                 <td>{product.dimensions}</td>
                                             </tr>
                                         )}
-                                        {product.quantity && (
+
+                                        {/* CỘT SỐ LƯỢNG KHO - ĐÃ CẬP NHẬT */}
+                                        {product.quantity !== undefined && (
                                             <tr>
-                                                <td className="text-muted">Còn lại</td>
-                                                <td>{product.quantity} sản phẩm</td>
+                                                <td className="text-muted">Số lượng kho</td>
+                                                <td className="fw-bold text-dark">
+                                                    {product.quantity} sản phẩm
+                                                </td>
                                             </tr>
                                         )}
                                     </tbody>

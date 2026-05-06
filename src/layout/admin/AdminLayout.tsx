@@ -101,7 +101,7 @@ const AdminLayout: React.FC = () => {
             {/* Main */}
             <div style={s.main}>
                 <div style={s.header}>
-                    <span style={{ fontSize: 14, color: "#888" }}>Admin Dashboard</span>
+                    <span style={{ fontSize: 14, color: "#888" }}>Bảng điều khiển quản trị</span>
                     <button style={s.logoutBtn} onClick={handleLogout}>Đăng xuất</button>
                 </div>
                 <div style={s.content}>

@@ -23,9 +23,22 @@ const CarouselItem: React.FC<CarouselItemInterface> = ({ product }) => {
 
     if (!product) return null;
 
-    const imageData = imageList[0]?.url ?? "";
-    const discount = product.listPrice && product.sellingPrice
-        ? Math.round((1 - product.sellingPrice / product.listPrice) * 100)
+    const rawFileName = imageList[0]?.url ?? imageList[0]?.data ?? "";
+    let finalImageUrl = "/no-image.png";
+
+    if (rawFileName !== "") {
+        // 1. Tách lấy tên file cuối cùng (loại bỏ sạch /images/ hay đường dẫn thừa)
+        const fileName = rawFileName.split('/').pop();
+
+        // 2. Ghép lại với cổng 8089 và mã hóa tên file (tránh lỗi 400 Bad Request do khoảng trắng)
+        if (fileName) {
+            finalImageUrl = `http://localhost:8089/images/${encodeURIComponent(fileName)}`;
+        }
+    }
+    const listPrice = product.listPrice ?? 0;
+    const sellingPrice = product.sellingPrice ?? 0;
+    const discount = listPrice > 0 
+        ? Math.round((1 - sellingPrice / listPrice) * 100) 
         : 0;
 
     return (
@@ -61,7 +74,7 @@ const CarouselItem: React.FC<CarouselItemInterface> = ({ product }) => {
                         }} />
                     ) : (
                         <img
-                            src={imageData || "/no-image.png"}
+                            src={finalImageUrl}
                             alt={product.name}
                             style={{
                                 width: "100%",
@@ -72,7 +85,7 @@ const CarouselItem: React.FC<CarouselItemInterface> = ({ product }) => {
                         />
                     )}
                     {/* Badge giảm giá */}
-                    {discount > 0 && (
+                    { discount > 0 && (
                         <div style={{
                             position: "absolute",
                             top: 16, left: 16,

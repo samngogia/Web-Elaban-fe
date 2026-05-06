@@ -154,22 +154,7 @@ const Navbar: React.FC<NavbarProps> = ({ searchKeyword, setSearchKeyword }) => {
           </ul>
 
 
-          <div className="d-flex gap-2 ms-3">
-            <button
-              className="btn btn-sm btn-outline-light"
-              onClick={() => i18n.changeLanguage("vi")}
-            >
-              VI
-            </button>
-
-            <button
-              className="btn btn-sm btn-outline-light"
-              onClick={() => i18n.changeLanguage("en")}
-            >
-              EN
-            </button>
-          </div>
-
+          
 
           {/* Tìm kiếm tinh chỉnh bo tròn */}
           <form className="d-flex me-lg-3" onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>

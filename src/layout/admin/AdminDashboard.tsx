@@ -8,70 +8,62 @@ const AdminDashboard: React.FC = () => {
     const [revenueData, setRevenueData] = useState<any[]>([]);
     const [topProducts, setTopProducts] = useState<any[]>([]);
     const token = localStorage.getItem("token");
-    // Trong AdminDashboard Component, thêm state:
 
-
-
+    // 1. Thêm hàm Helper để dịch các trạng thái sang tiếng Việt
+    const translateStatus = (status: string) => {
+        switch (status) {
+            case "PAID": return "ĐÃ THANH TOÁN";
+            case "UNPAID": return "CHƯA THANH TOÁN";
+            case "PENDING": return "CHỜ XỬ LÝ";
+            case "SHIPPING": return "ĐANG GIAO";
+            case "DELIVERED": return "ĐÃ GIAO";
+            case "CANCELLED": return "ĐÃ HỦY";
+            default: return status;
+        }
+    };
 
     useEffect(() => {
-        const headers = {
-            Authorization: `Bearer ${token}`,
-        };
+        const headers = { Authorization: `Bearer ${token}` };
 
         const fetchStats = async () => {
             try {
                 const res = await fetch("http://localhost:8089/admin/dashboard/stats", { headers });
-
                 if (!res.ok) throw new Error(`Stats HTTP ${res.status}`);
-
                 const text = await res.text();
                 setStats(text ? JSON.parse(text) : null);
-            } catch (err) {
-                console.error("Lỗi stats:", err);
-            }
+            } catch (err) { console.error("Lỗi stats:", err); }
         };
 
         const fetchRecentOrders = async () => {
             try {
                 const res = await fetch("http://localhost:8089/admin/dashboard/recent-orders", { headers });
-
                 if (!res.ok) throw new Error(`Recent orders HTTP ${res.status}`);
-
                 const text = await res.text();
                 setRecentOrders(text ? JSON.parse(text) : []);
-            } catch (err) {
-                console.error("Lỗi recent orders:", err);
-                setRecentOrders([]);
-            }
+            } catch (err) { console.error("Lỗi recent orders:", err); setRecentOrders([]); }
         };
 
         const fetchRevenue = async () => {
             try {
-                const res = await fetch(
-                    "http://localhost:8089/admin/dashboard/revenue-by-month?year=2026",
-                    { headers }
-                );
-
+                const res = await fetch("http://localhost:8089/admin/dashboard/revenue-by-month?year=2026", { headers });
                 if (!res.ok) throw new Error(`Revenue HTTP ${res.status}`);
-
                 const text = await res.text();
                 setRevenueData(text ? JSON.parse(text) : []);
-            } catch (err) {
-                console.error("Lỗi revenue:", err);
-                setRevenueData([]);
-            }
+            } catch (err) { console.error("Lỗi revenue:", err); setRevenueData([]); }
         };
-        // Trong useEffect, thêm hàm fetch:
+
         const fetchTopProducts = async () => {
             try {
                 const res = await fetch("http://localhost:8089/admin/dashboard/top-selling", { headers });
                 if (res.ok) {
                     const text = await res.text();
+                    const data = text ? JSON.parse(text) : [];
                     setTopProducts(text ? JSON.parse(text) : []);
+                    // THÊM DÒNG NÀY VÀO:
+                    console.log("Dữ liệu thực tế từ API trả về:", data);
+                    setTopProducts(data);
                 }
-            } catch (err) {
-                console.error("Lỗi top products:", err);
-            }
+            } catch (err) { console.error("Lỗi top products:", err); }
         };
 
         fetchStats();
@@ -90,22 +82,23 @@ const AdminDashboard: React.FC = () => {
         table: { width: "100%", borderCollapse: "collapse" as const, fontSize: 13 },
         th: { textAlign: "left" as const, padding: "8px 12px", color: "#aaa", fontWeight: 600, fontSize: 11, letterSpacing: "0.06em", borderBottom: "0.5px solid #eee" },
         td: { padding: "12px", borderBottom: "0.5px solid #f5f5f5", color: "#333" },
-        badge: { padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 500 },
+        badge: { padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 },
     };
 
     const getBadgeStyle = (status: string): React.CSSProperties => {
-        if (status === "PAID") return { ...s.badge, background: "#EAF3DE", color: "#27500A" };
-        if (status === "PENDING") return { ...s.badge, background: "#FAEEDA", color: "#633806" };
+        // Áp dụng màu sắc dựa trên trạng thái gốc (English) để đảm bảo logic không sai
+        if (status === "PAID" || status === "DELIVERED") return { ...s.badge, background: "#EAF3DE", color: "#27500A" };
+        if (status === "PENDING" || status === "SHIPPING") return { ...s.badge, background: "#FAEEDA", color: "#633806" };
+        if (status === "UNPAID" || status === "CANCELLED") return { ...s.badge, background: "#FFEBEB", color: "#D32F2F" };
         return { ...s.badge, background: "#f0f0f0", color: "#666" };
     };
 
-    if (!stats) return <div>Loading...</div>;
+    if (!stats) return <div>Đang tải dữ liệu...</div>;
 
     return (
         <div>
-            <h2 style={{ fontSize: 22, fontWeight: 400, marginBottom: 24 }}>Dashboard</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 400, marginBottom: 24 }}>Bảng điều khiển</h2>
 
-            {/* Metric cards */}
             <div style={s.grid4}>
                 {[
                     { label: "Tổng đơn hàng", value: stats.totalOrders },
@@ -119,10 +112,8 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 ))}
             </div>
-            {/* THỐNG KÊ SẢN PHẨM & CẢNH BÁO TỒN KHO */}
-            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24, marginBottom: 24 }}>
 
-                {/* Cột 1: Biểu đồ Top 5 Bán chạy tuần qua */}
+            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24, marginBottom: 24 }}>
                 <div style={s.section}>
                     <div style={s.sectionTitle}>🔥 Top 5 Bán Chạy (7 Ngày Qua)</div>
                     <div style={{ height: 300 }}>
@@ -138,33 +129,28 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Cột 2: Cảnh báo Hết Hàng (AI Dự báo cơ bản) */}
                 <div style={s.section}>
                     <div style={s.sectionTitle}>⚠️ Cảnh Báo Tồn Kho</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                        {topProducts.map(p => {
-                            // Logic dự báo Burn Rate: 
-                            // Số lượng bán trong 7 ngày -> Tính trung bình 1 ngày bán bao nhiêu cái
+                        {topProducts.map((p, i) => { // Phải có ngoặc đơn bao quanh (p, i)
                             const dailyBurnRate = p.totalSold / 7;
-                            // Số ngày dự kiến hết hàng = Tồn kho hiện tại / Tốc độ bán
                             const daysUntilOut = dailyBurnRate > 0 ? Math.floor(p.currentStock / dailyBurnRate) : 999;
 
-                            let statusColor = "#27500A"; // Xanh (An toàn)
+                            let statusColor = "#27500A";
                             let statusText = "An toàn";
 
                             if (daysUntilOut <= 3 || p.currentStock === 0) {
-                                statusColor = "#d32f2f"; // Đỏ (Khẩn cấp)
+                                statusColor = "#d32f2f";
                                 statusText = p.currentStock === 0 ? "Hết hàng" : "Sắp hết (<3 ngày)";
                             } else if (daysUntilOut <= 7) {
-                                statusColor = "#f5a623"; // Vàng (Cảnh báo)
+                                statusColor = "#f5a623";
                                 statusText = "Còn ~ 1 tuần";
                             }
-
                             return (
-                                <div key={p.productId} style={{ padding: 12, border: "0.5px solid #eee", borderRadius: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <div key={p.productId || i} style={{ padding: 12, border: "0.5px solid #eee", borderRadius: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                     <div style={{ flex: 1, marginRight: 10 }}>
                                         <div style={{ fontSize: 13, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 150 }}>
-                                            {p.productName}
+                                            {p.productName || p.name} {/* Kiểm tra lại p.name hay p.productName */}
                                         </div>
                                         <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>
                                             Kho: {p.currentStock} | Bán: {p.totalSold}/tuần
@@ -176,22 +162,17 @@ const AdminDashboard: React.FC = () => {
                                 </div>
                             );
                         })}
-                        {topProducts.length === 0 && <div style={{ fontSize: 13, color: "#aaa", textAlign: "center" }}>Chưa có dữ liệu giao dịch tuần này.</div>}
                     </div>
                 </div>
             </div>
 
-            {/* Doanh thu theo tháng */}
             <div style={s.section}>
                 <div style={s.sectionTitle}>Doanh thu theo tháng (2026)</div>
                 <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 160 }}>
                     {Array.from({ length: 12 }, (_, i) => {
                         const month = revenueData.find(d => d.month === i + 1);
                         const revenue = month?.revenue ?? 0;
-                        const maxRevenue =
-                            revenueData.length > 0
-                                ? Math.max(...revenueData.map((d) => d.revenue), 1)
-                                : 1;
+                        const maxRevenue = revenueData.length > 0 ? Math.max(...revenueData.map((d) => d.revenue), 1) : 1;
                         const height = Math.round((revenue / maxRevenue) * 120);
                         return (
                             <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
@@ -203,17 +184,16 @@ const AdminDashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Đơn hàng gần đây */}
             <div style={s.section}>
                 <div style={s.sectionTitle}>Đơn hàng gần đây</div>
                 <table style={s.table}>
                     <thead>
                         <tr>
                             <th style={s.th}>ID</th>
-                            <th style={s.th}>Tổng tiền</th>
-                            <th style={s.th}>Thanh toán</th>
-                            <th style={s.th}>Giao hàng</th>
-                            <th style={s.th}>Ngày tạo</th>
+                            <th style={s.th}>TỔNG TIỀN</th>
+                            <th style={s.th}>THANH TOÁN</th>
+                            <th style={s.th}>GIAO HÀNG</th>
+                            <th style={s.th}>NGÀY TẠO</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -223,12 +203,12 @@ const AdminDashboard: React.FC = () => {
                                 <td style={s.td}>{FormatNumber(order.totalAmount)}đ</td>
                                 <td style={s.td}>
                                     <span style={getBadgeStyle(order.paymentStatus)}>
-                                        {order.paymentStatus}
+                                        {translateStatus(order.paymentStatus)}
                                     </span>
                                 </td>
                                 <td style={s.td}>
                                     <span style={getBadgeStyle(order.shippingStatus)}>
-                                        {order.shippingStatus}
+                                        {translateStatus(order.shippingStatus)}
                                     </span>
                                 </td>
                                 <td style={s.td}>
